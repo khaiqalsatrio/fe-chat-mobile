@@ -1,5 +1,5 @@
 import apiClient from '@/core/services/api-client';
-import { AuthResponse } from '../../domain/entities/user';
+import { AuthResponse, User } from '../../domain/entities/user';
 import * as SecureStore from 'expo-secure-store';
 
 export class AuthRepository {
@@ -38,6 +38,18 @@ export class AuthRepository {
     } catch (error: any) {
       if (error.response) {
         throw new Error(error.response.data.message || 'Registration failed');
+      }
+      throw new Error('Network error. Please check your connection.');
+    }
+  }
+
+  async getMe(): Promise<User> {
+    try {
+      const response = await apiClient.get('/auth/me');
+      return response.data.data;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data.message || 'Failed to fetch profile');
       }
       throw new Error('Network error. Please check your connection.');
     }

@@ -1,19 +1,23 @@
-import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { authRepository } from '@/features/auth/data/repositories/auth-repository-impl';
+import { User } from '@/features/auth/domain/entities/user';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +26,50 @@ export default function ProfilePage() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
+
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchProfile = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const userData = await authRepository.getMe();
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchProfile(false);
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            await authRepository.logout();
+            router.replace('/login');
+          }
+        },
+      ]
+    );
+  };
 
   const SettingItem = ({ icon, title, subtitle, color, isLast }: any) => (
     <TouchableOpacity style={[styles.settingItem, isLast && styles.noBorder]}>
@@ -42,7 +90,10 @@ export default function ProfilePage() {
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Image source={{ uri: 'https://i.pravatar.cc/150?u=me' }} style={styles.myAvatarSmall} />
+            <Image
+              source={{ uri: user?.avatar_url || `https://i.pravatar.cc/150?u=${user?.id || 'me'}` }}
+              style={styles.myAvatarSmall}
+            />
             <Text style={styles.headerTitle}>Profile</Text>
           </View>
           <TouchableOpacity>
@@ -51,84 +102,96 @@ export default function ProfilePage() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Profile Info */}
-        <View style={styles.profileInfoSection}>
-          <View style={styles.largeAvatarWrapper}>
-            <View style={styles.avatarGradientBorder}>
-              <Image 
-                source={{ uri: 'https://i.pravatar.cc/150?u=alexandria' }} 
-                style={styles.largeAvatar} 
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+        </View>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Profile Info */}
+          <View style={styles.profileInfoSection}>
+            <View style={styles.largeAvatarWrapper}>
+              <View style={styles.avatarGradientBorder}>
+                <Image
+                  source={{ uri: user?.avatar_url || `https://i.pravatar.cc/150?u=${user?.id || 'me'}` }}
+                  style={styles.largeAvatar}
+                />
+              </View>
+              {user?.status === 'ONLINE' && <View style={styles.onlineStatusDot} />}
+              <TouchableOpacity style={styles.cameraButton}>
+                <Ionicons name="camera" size={18} color="#6366f1" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.userName}>{user?.username || 'User'}</Text>
+            <Text style={styles.userSubtitle}>
+              {user?.email} • "Available"
+            </Text>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.editButton}>
+                <Text style={styles.editButtonText}>Edit Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.shareButton}>
+                <Ionicons name="share-social-outline" size={22} color="#374151" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Settings Groups */}
+          <View style={styles.settingsSection}>
+            <View style={styles.settingsCard}>
+              <SettingItem
+                icon="person-outline"
+                title="Account"
+                subtitle="Security, Two-factor, Privacy"
+                color="#6366f1"
+              />
+              <SettingItem
+                icon="notifications-outline"
+                title="Notifications"
+                subtitle="Push, Email, Quiet mode"
+                color="#6366f1"
+                isLast
               />
             </View>
-            <View style={styles.onlineStatusDot} />
-            <TouchableOpacity style={styles.cameraButton}>
-              <Ionicons name="camera" size={18} color="#6366f1" />
+
+            <View style={styles.settingsCard}>
+              <SettingItem
+                icon="lock-closed-outline"
+                title="Privacy"
+                subtitle="Data, Visibility, Contacts"
+                color="#10b981"
+              />
+              <SettingItem
+                icon="help-circle-outline"
+                title="Help"
+                subtitle="Support center, FAQ"
+                color="#6b7280"
+                isLast
+              />
+            </View>
+          </View>
+
+          {/* Logout Button */}
+          <View style={styles.logoutSection}>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={22} color="#ef4444" />
+              <Text style={styles.logoutText}>Log Out</Text>
             </TouchableOpacity>
+            <Text style={styles.appVersion}>APP VERSION 2.4.1 (STABLE)</Text>
           </View>
-
-          <Text style={styles.userName}>Alexandria Carter</Text>
-          <Text style={styles.userSubtitle}>
-            Product Designer • "Living in the flow 🌊"
-          </Text>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.editButton}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="share-social-outline" size={22} color="#374151" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Settings Groups */}
-        <View style={styles.settingsSection}>
-          <View style={styles.settingsCard}>
-            <SettingItem 
-              icon="person-outline" 
-              title="Account" 
-              subtitle="Security, Two-factor, Privacy" 
-              color="#6366f1"
-            />
-            <SettingItem 
-              icon="notifications-outline" 
-              title="Notifications" 
-              subtitle="Push, Email, Quiet mode" 
-              color="#6366f1"
-              isLast
-            />
-          </View>
-
-          <View style={styles.settingsCard}>
-            <SettingItem 
-              icon="lock-closed-outline" 
-              title="Privacy" 
-              subtitle="Data, Visibility, Contacts" 
-              color="#10b981"
-            />
-            <SettingItem 
-              icon="help-circle-outline" 
-              title="Help" 
-              subtitle="Support center, FAQ" 
-              color="#6b7280"
-              isLast
-            />
-          </View>
-        </View>
-
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity 
-            style={styles.logoutButton}
-            onPress={() => router.replace('/login')}
-          >
-            <Ionicons name="log-out-outline" size={22} color="#ef4444" />
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
-          <Text style={styles.appVersion}>APP VERSION 2.4.1 (STABLE)</Text>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -136,6 +199,11 @@ export default function ProfilePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     backgroundColor: '#fff',

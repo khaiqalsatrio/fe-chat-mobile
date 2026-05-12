@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,70 +8,21 @@ import {
   FlatList,
   Dimensions,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { chatRepository } from '../../data/repositories/chat-repository-impl';
+import { socketService } from '@/core/services/socket-service';
+import { Conversation } from '../../domain/entities/chat';
 
 const { width } = Dimensions.get('window');
-
-const ACTIVE_CONTACTS = [
-  { id: '1', name: 'Alex', image: 'https://i.pravatar.cc/150?u=alex', online: true },
-  { id: '2', name: 'Sarah', image: 'https://i.pravatar.cc/150?u=sarah', online: false },
-  { id: '3', name: 'Jordan', image: 'https://i.pravatar.cc/150?u=jordan', online: true },
-  { id: '4', name: 'Taylor', image: 'https://i.pravatar.cc/150?u=taylor', online: false },
-];
-
-const CHATS = [
-  {
-    id: '1',
-    name: 'Jordan Miller',
-    message: 'Can we review the Q4 designs today?',
-    time: '10:42 AM',
-    unread: 2,
-    image: 'https://i.pravatar.cc/150?u=jordan',
-    online: true,
-  },
-  {
-    id: '2',
-    name: 'Sarah Jenkins',
-    message: 'The final report has been uploaded to th...',
-    time: 'Yesterday',
-    unread: 0,
-    image: 'https://i.pravatar.cc/150?u=sarah',
-    online: false,
-  },
-  {
-    id: '3',
-    name: 'Alex Rivera',
-    message: 'Sounds good, let\'s catch up later.',
-    time: 'Monday',
-    unread: 0,
-    image: 'https://i.pravatar.cc/150?u=alex',
-    online: true,
-  },
-  {
-    id: '4',
-    name: 'Design Team Sync',
-    message: 'Mark: I\'ve updated the brand toke...',
-    time: 'Monday',
-    unread: 12,
-    isGroup: true,
-    image: null,
-  },
-  {
-    id: '5',
-    name: 'Taylor Swift',
-    message: 'See you at the concert tonight!',
-    time: 'Oct 12',
-    unread: 0,
-    image: 'https://i.pravatar.cc/150?u=taylor',
-    online: false,
-  },
-];
 
 export default function MessageListPage() {
   const router = useRouter();
@@ -79,50 +30,84 @@ export default function MessageListPage() {
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
 
-  const renderActiveContact = ({ item }: { item: typeof ACTIVE_CONTACTS[0] }) => (
-    <TouchableOpacity 
-      style={styles.activeContactItem} 
-      onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id } } as any)}
-    >
-      <View style={styles.activeAvatarWrapper}>
-        <Image source={{ uri: item.image }} style={styles.activeAvatar} />
-        {item.online && <View style={styles.onlineDotLarge} />}
-      </View>
-      <Text style={[styles.activeContactName, { color: themeColors.text }]}>{item.name}</Text>
-    </TouchableOpacity>
-  );
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [myUserData, setMyUserData] = useState<any>(null);
 
-  const renderChatItem = ({ item, isLast }: { item: typeof CHATS[0], isLast: boolean }) => (
+  const fetchConversations = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const data = await chatRepository.getConversations();
+      setConversations(data);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      const userDataStr = await SecureStore.getItemAsync('user_data');
+      if (userDataStr) setMyUserData(JSON.parse(userDataStr));
+      
+      await fetchConversations();
+      
+      // Connect to socket and listen for new messages to update the list
+      await socketService.connect();
+      const unsubscribe = socketService.subscribe((event) => {
+        if (event.event === 'new_message') {
+          // If we get a new message, refresh the list or update local state
+          // For simplicity, let's refresh the list to get updated unread counts/last message
+          fetchConversations(false);
+        }
+      });
+      
+      return unsubscribe;
+    };
+
+    const unsubscribePromise = init();
+    return () => {
+      unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
+    };
+  }, []);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchConversations(false);
+  };
+
+  const renderChatItem = ({ item, isLast }: { item: Conversation, isLast: boolean }) => (
     <TouchableOpacity 
       style={[styles.chatItem, isLast && styles.noBorder]} 
       onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.id } } as any)}
     >
       <View style={styles.chatAvatarWrapper}>
-        {item.isGroup ? (
-          <View style={[styles.groupIcon, { backgroundColor: '#eef2ff' }]}>
-            <Ionicons name="people" size={26} color="#6366f1" />
-          </View>
-        ) : (
-          <Image source={{ uri: item.image! }} style={styles.chatAvatar} />
-        )}
-        {item.online && <View style={styles.onlineDotSmall} />}
+        <View style={[styles.groupIcon, { backgroundColor: '#eef2ff' }]}>
+          <Ionicons name="people" size={26} color="#6366f1" />
+        </View>
+        <View style={styles.onlineDotSmall} />
       </View>
       
       <View style={styles.chatInfo}>
         <View style={styles.chatHeader}>
           <Text style={[styles.chatName, { color: themeColors.text }]} numberOfLines={1}>
-            {item.name}
+            {item.name || 'Chat Group'}
           </Text>
-          <Text style={[styles.chatTime, { color: '#9ca3af' }]}>{item.time}</Text>
+          <Text style={[styles.chatTime, { color: '#9ca3af' }]}>
+            {item.last_message_time ? new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+          </Text>
         </View>
         
         <View style={styles.chatFooter}>
           <Text style={[styles.chatMessage, { color: '#6b7280' }]} numberOfLines={1}>
-            {item.message}
+            {item.last_message || 'No messages yet'}
           </Text>
-          {item.unread > 0 && (
+          {(item.unread_count ?? 0) > 0 && (
             <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unread}</Text>
+              <Text style={styles.unreadText}>{item.unread_count}</Text>
             </View>
           )}
         </View>
@@ -136,7 +121,10 @@ export default function MessageListPage() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.myAvatarWrapper}>
-            <Image source={{ uri: 'https://i.pravatar.cc/150?u=me' }} style={styles.myAvatar} />
+            <Image 
+              source={{ uri: myUserData?.avatar_url || 'https://i.pravatar.cc/150?u=me' }} 
+              style={styles.myAvatar} 
+            />
             <View style={styles.onlineDotSmall} />
           </View>
           <Text style={[styles.headerTitle, { color: '#111827' }]}>Messages</Text>
@@ -146,31 +134,34 @@ export default function MessageListPage() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        {/* Active Contacts */}
-        <View style={styles.activeContactsSection}>
-          <FlatList
-            data={ACTIVE_CONTACTS}
-            renderItem={renderActiveContact}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activeListContent}
-          />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#6366f1" />
         </View>
-
-        {/* Chats List */}
-        <View style={styles.chatsSection}>
-          {CHATS.map((chat, index) => (
-            <React.Fragment key={chat.id}>
-              {renderChatItem({ item: chat, isLast: index === CHATS.length - 1 })}
-            </React.Fragment>
-          ))}
-        </View>
-      </ScrollView>
+      ) : (
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Chats List */}
+          <View style={styles.chatsSection}>
+            {conversations.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No conversations yet.</Text>
+              </View>
+            ) : (
+              conversations.map((chat, index) => (
+                <React.Fragment key={chat.id}>
+                  {renderChatItem({ item: chat, isLast: index === conversations.length - 1 })}
+                </React.Fragment>
+              ))
+            )}
+          </View>
+        </ScrollView>
+      )}
 
       {/* FAB */}
       <TouchableOpacity 
@@ -350,5 +341,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    color: '#9ca3af',
+    fontSize: 16,
   },
 });

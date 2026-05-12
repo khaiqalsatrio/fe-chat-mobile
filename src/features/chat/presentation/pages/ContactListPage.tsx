@@ -1,63 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Dimensions,
-  Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { userRepository } from '@/features/auth/data/repositories/user-repository-impl';
+import { User } from '@/features/auth/domain/entities/user';
 
 const { width } = Dimensions.get('window');
 
-const CONTACT_SECTIONS = [
-  {
-    title: 'A',
-    data: [
-      { id: '1', name: 'Alice Henderson', role: 'Product Designer', online: true, image: 'https://i.pravatar.cc/150?u=alice' },
-      { id: '2', name: 'Andrew Miller', role: 'Lead Developer', online: false, image: 'https://i.pravatar.cc/150?u=andrew' },
-    ],
-  },
-  {
-    title: 'B',
-    data: [
-      { id: '3', name: 'Beatrice Thorne', role: 'Marketing Director', online: true, image: 'https://i.pravatar.cc/150?u=beatrice' },
-    ],
-  },
-  {
-    title: 'C',
-    data: [
-      { id: '4', name: 'Calvin Brooks', role: 'Senior Recruiter', online: false, image: 'https://i.pravatar.cc/150?u=calvin' },
-      { id: '5', name: 'Catherine Vance', role: 'Operations Manager', online: false, image: 'https://i.pravatar.cc/150?u=catherine' },
-    ],
-  },
-];
+interface ContactSection {
+  title: string;
+  data: User[];
+}
 
 export default function ContactListPage() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
 
-  const renderContactItem = (contact: any, isLast: boolean) => (
+  const [sections, setSections] = useState<ContactSection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchContacts = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const users = await userRepository.getAllUsers();
+      
+      // Group users by first letter
+      const groups: { [key: string]: User[] } = {};
+      users
+        .sort((a, b) => a.username.localeCompare(b.username))
+        .forEach(user => {
+          const firstLetter = user.username.charAt(0).toUpperCase();
+          if (!groups[firstLetter]) groups[firstLetter] = [];
+          groups[firstLetter].push(user);
+        });
+
+      const formattedSections = Object.keys(groups)
+        .sort()
+        .map(letter => ({
+          title: letter,
+          data: groups[letter]
+        }));
+
+      setSections(formattedSections);
+    } catch (error) {
+      console.error('Failed to fetch contacts:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchContacts(false);
+  };
+
+  const renderContactItem = (contact: User, isLast: boolean) => (
     <View key={contact.id} style={[styles.contactItem, isLast && styles.noBorder]}>
       <View style={styles.contactInfo}>
         <View style={styles.avatarWrapper}>
-          <Image source={{ uri: contact.image }} style={styles.avatar} />
-          {contact.online && <View style={styles.onlineDot} />}
+          <Image 
+            source={{ uri: contact.avatar_url || `https://i.pravatar.cc/150?u=${contact.id}` }} 
+            style={styles.avatar} 
+          />
+          {contact.status === 'ONLINE' && <View style={styles.onlineDot} />}
         </View>
         <View style={styles.textContainer}>
-          <Text style={[styles.name, { color: themeColors.text }]}>{contact.name}</Text>
-          <Text style={styles.role}>{contact.role}</Text>
+          <Text style={[styles.name, { color: themeColors.text }]}>{contact.username}</Text>
+          <Text style={styles.role}>{contact.email}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.messageButton}>
+      <TouchableOpacity 
+        style={styles.messageButton}
+        onPress={() => {
+          // Placeholder: Navigate to chat with this user
+          // router.push({ pathname: '/chat/[id]', params: { id: contact.id } } as any);
+        }}
+      >
         <Ionicons name="chatbubble-ellipses-outline" size={22} color="#6366f1" />
       </TouchableOpacity>
     </View>
@@ -83,33 +122,48 @@ export default function ContactListPage() {
         </View>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
-      >
-        {/* Filter Section with Borders */}
-        <View style={styles.filterSection}>
-          <TouchableOpacity style={styles.filterItem}>
-            <MaterialCommunityIcons name="filter-variant" size={24} color="#6366f1" />
-            <Text style={styles.filterText}>Filter by Department or Group</Text>
-            <Ionicons name="chevron-down" size={20} color="#9ca3af" />
-          </TouchableOpacity>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
         </View>
-
-        {/* Sections */}
-        {CONTACT_SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-            </View>
-            <View style={styles.sectionContent}>
-              {section.data.map((contact, index) => 
-                renderContactItem(contact, index === section.data.length - 1)
-              )}
-            </View>
+      ) : (
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Filter Section */}
+          <View style={styles.filterSection}>
+            <TouchableOpacity style={styles.filterItem}>
+              <MaterialCommunityIcons name="filter-variant" size={24} color="#6366f1" />
+              <Text style={styles.filterText}>Filter by Status or Department</Text>
+              <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+            </TouchableOpacity>
           </View>
-        ))}
-      </ScrollView>
+
+          {/* Sections */}
+          {sections.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No contacts found.</Text>
+            </View>
+          ) : (
+            sections.map((section) => (
+              <View key={section.title} style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  {section.data.map((contact, index) => 
+                    renderContactItem(contact, index === section.data.length - 1)
+                  )}
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -117,6 +171,11 @@ export default function ContactListPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     backgroundColor: '#fff',
@@ -250,5 +309,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
+  },
+  emptyContainer: {
+    marginTop: 100,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9ca3af',
   },
 });
