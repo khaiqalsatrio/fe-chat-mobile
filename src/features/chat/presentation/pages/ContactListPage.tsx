@@ -45,8 +45,8 @@ export default function ContactListPage() {
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
 
-  const renderContactItem = (contact: any) => (
-    <View key={contact.id} style={styles.contactCard}>
+  const renderContactItem = (contact: any, isLast: boolean) => (
+    <View key={contact.id} style={[styles.contactItem, isLast && styles.noBorder]}>
       <View style={styles.contactInfo}>
         <View style={styles.avatarWrapper}>
           <Image source={{ uri: contact.image }} style={styles.avatar} />
@@ -58,13 +58,13 @@ export default function ContactListPage() {
         </View>
       </View>
       <TouchableOpacity style={styles.messageButton}>
-        <Ionicons name="chatbubble-outline" size={20} color="#4f46e5" />
+        <Ionicons name="chatbubble-ellipses-outline" size={22} color="#6366f1" />
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: '#f9fafb' }]}>
+    <View style={[styles.container, { backgroundColor: '#fff' }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <View style={styles.headerContent}>
@@ -87,17 +87,26 @@ export default function ContactListPage() {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
       >
-        {/* Filter Bar */}
-        <View style={styles.filterBar}>
-          <MaterialCommunityIcons name="filter-variant" size={24} color="#6b7280" />
-          <Text style={styles.filterText}>Filter by Department or Group</Text>
+        {/* Filter Section with Borders */}
+        <View style={styles.filterSection}>
+          <TouchableOpacity style={styles.filterItem}>
+            <MaterialCommunityIcons name="filter-variant" size={24} color="#6366f1" />
+            <Text style={styles.filterText}>Filter by Department or Group</Text>
+            <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+          </TouchableOpacity>
         </View>
 
         {/* Sections */}
         {CONTACT_SECTIONS.map((section) => (
           <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            {section.data.map(renderContactItem)}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            </View>
+            <View style={styles.sectionContent}>
+              {section.data.map((contact, index) => 
+                renderContactItem(contact, index === section.data.length - 1)
+              )}
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -143,64 +152,71 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 0,
   },
-  filterBar: {
+  filterSection: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  filterItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   filterText: {
+    flex: 1,
     marginLeft: 12,
-    fontSize: 15,
+    fontSize: 16,
     color: '#4b5563',
     fontWeight: '500',
   },
   section: {
-    marginBottom: 24,
+    marginTop: 16,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderColor: '#f3f4f6',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#6366f1',
-    marginBottom: 12,
-    marginLeft: 4,
+    textTransform: 'uppercase',
   },
-  contactCard: {
+  sectionContent: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    padding: 14,
-    borderRadius: 24,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  noBorder: {
+    borderBottomWidth: 0,
   },
   contactInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   avatarWrapper: {
     position: 'relative',
     marginRight: 16,
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
   },
   onlineDot: {
     position: 'absolute',
@@ -215,6 +231,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     justifyContent: 'center',
+    flex: 1,
   },
   name: {
     fontSize: 17,
@@ -226,11 +243,12 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   messageButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#eef2ff',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f5f3ff',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 12,
   },
 });
