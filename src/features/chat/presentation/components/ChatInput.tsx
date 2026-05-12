@@ -27,43 +27,38 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const insets = useSafeAreaInsets();
   
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10 }]}>
-        <TouchableOpacity style={styles.plusButton}>
-          <Ionicons name="add-circle-outline" size={28} color="#4b5563" />
-        </TouchableOpacity>
-        
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            placeholderTextColor="#9ca3af"
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            editable={!isSending}
-          />
-          <TouchableOpacity style={styles.emojiButton}>
-            <Feather name="smile" size={22} color="#9ca3af" />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity 
-          style={[styles.sendButton, (!inputText.trim() || isSending) && { opacity: 0.5 }]} 
-          onPress={handleSend}
-          disabled={!inputText.trim() || isSending}
-        >
-          {isSending ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="send" size={20} color="#fff" />
-          )}
+    <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10 }]}>
+      <TouchableOpacity style={styles.plusButton}>
+        <Ionicons name="add-circle-outline" size={28} color="#4b5563" />
+      </TouchableOpacity>
+      
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          placeholder="Type a message..."
+          placeholderTextColor="#9ca3af"
+          value={inputText}
+          onChangeText={setInputText}
+          multiline
+          editable={!isSending}
+        />
+        <TouchableOpacity style={styles.emojiButton}>
+          <Feather name="smile" size={22} color="#9ca3af" />
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+
+      <TouchableOpacity 
+        style={[styles.sendButton, (!inputText.trim() || isSending) && { opacity: 0.5 }]} 
+        onPress={handleSend}
+        disabled={!inputText.trim() || isSending}
+      >
+        {isSending ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Ionicons name="send" size={20} color="#fff" />
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
 

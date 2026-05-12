@@ -1,11 +1,14 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
   StyleSheet,
-  View
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatHeader } from '../components/ChatHeader';
@@ -33,38 +36,78 @@ export default function ChatDetailPage() {
   } = useChatDetail(conversationId, { name, avatar });
 
 
-  return (
-    <View style={[styles.container, { backgroundColor: '#f9fafb' }]}>
-      <ChatHeader
-        conversation={conversation}
-        conversationId={conversationId}
-        onBack={() => router.back()}
-      />
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-      {/* Messages */}
-      {isLoading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#6366f1" />
-        </View>
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setKeyboardHeight(0);
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+  }, []);
+
+  return (
+    <View style={[
+      styles.container, 
+      { 
+        backgroundColor: '#f9fafb',
+        paddingBottom: Platform.OS === 'android' ? Math.max(0, keyboardHeight - insets.bottom + 20) : 0
+      }
+    ]}>
+      <View style={{ flex: 1 }}>
+        <ChatHeader
+          conversation={conversation}
+          conversationId={conversationId}
+          onBack={() => router.back()}
+        />
+
+        {/* Messages */}
+        {isLoading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#6366f1" />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={({ item }) => (
+              <MessageBubble item={item} currentUserId={currentUserId} />
+            )}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={[styles.listContent, { paddingBottom: 20 }]}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          />
+        )}
+      </View>
+
+      {Platform.OS === 'ios' ? (
+        <KeyboardAvoidingView 
+          behavior="padding"
+          keyboardVerticalOffset={90}
+        >
+          <ChatInput
+            inputText={inputText}
+            setInputText={setInputText}
+            isSending={isSending}
+            handleSend={handleSend}
+          />
+        </KeyboardAvoidingView>
       ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={({ item }) => (
-            <MessageBubble item={item} currentUserId={currentUserId} />
-          )}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[styles.listContent, { paddingBottom: 20 }]}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        <ChatInput
+          inputText={inputText}
+          setInputText={setInputText}
+          isSending={isSending}
+          handleSend={handleSend}
         />
       )}
-
-      <ChatInput
-        inputText={inputText}
-        setInputText={setInputText}
-        isSending={isSending}
-        handleSend={handleSend}
-      />
     </View>
   );
 }
