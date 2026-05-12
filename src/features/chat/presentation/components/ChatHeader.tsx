@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ChatHeaderProps {
@@ -12,34 +13,38 @@ interface ChatHeaderProps {
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ conversation, conversationId, onBack }) => {
   const insets = useSafeAreaInsets();
-  
+  const textColor = useThemeColor({}, 'text');
+  const subTextColor = useThemeColor({ light: '#806b6bff', dark: '#9ca3af' }, 'text');
+  const backgroundColor = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
+  const borderColor = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
+
   return (
-    <View style={[styles.header, { paddingTop: insets.top }]}>
+    <View style={[styles.header, { paddingTop: insets.top, backgroundColor, borderBottomColor: borderColor }]}>
       <View style={styles.headerContent}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#1f2937" />
+          <Ionicons name="chevron-back" size={28} color={textColor} />
         </TouchableOpacity>
-        
+
         <View style={styles.userInfo}>
           <View style={styles.avatarWrapper}>
-            <Image 
-              source={{ uri: conversation?.avatar || `https://i.pravatar.cc/150?u=${conversationId || 'default'}` }} 
-              style={styles.avatar} 
+            <Image
+              source={{ uri: conversation?.avatar || `https://i.pravatar.cc/150?u=${conversationId || 'default'}` }}
+              style={styles.avatar}
             />
-            <View style={styles.onlineDot} />
+            <View style={[styles.onlineDot, { borderColor: backgroundColor }]} />
           </View>
           <View>
-            <Text style={styles.userName}>{conversation?.name || 'Loading...'}</Text>
-            <Text style={styles.userStatus}>Active</Text>
+            <Text style={[styles.userName, { color: textColor }]}>{conversation?.name || 'Loading...'}</Text>
+            <Text style={[styles.userStatus, { color: subTextColor }]}>Active</Text>
           </View>
         </View>
 
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.actionButton}>
-            <Feather name="video" size={22} color="#4b5563" />
+            <Feather name="video" size={22} color={textColor} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Feather name="phone" size={20} color="#4b5563" />
+            <Feather name="phone" size={20} color={textColor} />
           </TouchableOpacity>
         </View>
       </View>
@@ -49,9 +54,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ conversation, conversati
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerContent: {
     flexDirection: 'row',
@@ -85,16 +88,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#22c55e',
     borderWidth: 2,
-    borderColor: '#fff',
   },
   userName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111827',
   },
   userStatus: {
     fontSize: 12,
-    color: '#6b7280',
   },
   headerActions: {
     flexDirection: 'row',

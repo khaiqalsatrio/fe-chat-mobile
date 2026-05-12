@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Message } from '../../domain/entities/chat';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface MessageBubbleProps {
   item: Message;
@@ -10,23 +11,30 @@ interface MessageBubbleProps {
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ item, currentUserId }) => {
   const isMe = item.sender_id === currentUserId;
+  const otherBubbleBg = useThemeColor({ light: '#fff', dark: '#1f2937' }, 'background');
+  const otherTextColor = useThemeColor({}, 'text');
+  const otherBorderColor = useThemeColor({ light: '#f3f4f6', dark: '#111827' }, 'background');
+  const subTextColor = useThemeColor({ light: '#9ca3af', dark: '#6b7280' }, 'text');
 
   return (
     <View style={[styles.messageWrapper, isMe ? styles.myMessageWrapper : styles.otherMessageWrapper]}>
-      <View style={[styles.bubble, isMe ? styles.myBubble : styles.otherBubble]}>
-        <Text style={[styles.messageText, isMe ? styles.myMessageText : styles.otherMessageText]}>
+      <View style={[
+        styles.bubble, 
+        isMe ? styles.myBubble : [styles.otherBubble, { backgroundColor: otherBubbleBg, borderColor: otherBorderColor }]
+      ]}>
+        <Text style={[styles.messageText, isMe ? styles.myMessageText : { color: otherTextColor }]}>
           {item.content}
         </Text>
       </View>
       <View style={[styles.messageFooter, isMe ? styles.myFooter : styles.otherFooter]}>
-        <Text style={styles.timeText}>
+        <Text style={[styles.timeText, { color: subTextColor }]}>
           {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
         </Text>
         {isMe && (
           <Ionicons
             name={item.status === 'read' ? "checkmark-done" : "checkmark"}
             size={16}
-            color={item.status === 'read' ? "#6366f1" : "#9ca3af"}
+            color={item.status === 'read' ? "#6366f1" : subTextColor}
             style={{ marginLeft: 4 }}
           />
         )}
@@ -56,10 +64,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   otherBubble: {
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
   },
   messageText: {
     fontSize: 15,
@@ -67,9 +73,6 @@ const styles = StyleSheet.create({
   },
   myMessageText: {
     color: '#fff',
-  },
-  otherMessageText: {
-    color: '#1f2937',
   },
   messageFooter: {
     flexDirection: 'row',
@@ -84,6 +87,5 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 11,
-    color: '#9ca3af',
   },
 });

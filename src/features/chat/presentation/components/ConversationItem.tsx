@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Conversation } from '../../domain/entities/chat';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface ConversationItemProps {
   item: Conversation;
@@ -17,14 +18,24 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   onPress,
   themeColors,
 }) => {
+  const textColor = useThemeColor({}, 'text');
+  const subTextColor = useThemeColor({ light: '#6b7280', dark: '#9ca3af' }, 'text');
+  const timeColor = useThemeColor({ light: '#9ca3af', dark: '#6b7280' }, 'text');
+  const borderColor = useThemeColor({ light: '#f3f4f6', dark: '#111827' }, 'background');
+  const groupBg = useThemeColor({ light: '#eef2ff', dark: '#1e1b4b' }, 'background');
+
   return (
     <TouchableOpacity
-      style={[styles.chatItem, isLast && styles.noBorder]}
+      style={[
+        styles.chatItem, 
+        isLast && styles.noBorder,
+        { borderBottomColor: borderColor }
+      ]}
       onPress={() => onPress(item.id)}
     >
       <View style={styles.chatAvatarWrapper}>
         {item.type === 'GROUP' ? (
-          <View style={[styles.groupIcon, { backgroundColor: '#eef2ff' }]}>
+          <View style={[styles.groupIcon, { backgroundColor: groupBg }]}>
             <Ionicons name="people" size={26} color="#6366f1" />
           </View>
         ) : (
@@ -33,21 +44,21 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
             style={styles.chatAvatar} 
           />
         )}
-        <View style={styles.onlineDotSmall} />
+        <View style={[styles.onlineDotSmall, { borderColor: themeColors.background }]} />
       </View>
 
       <View style={styles.chatInfo}>
         <View style={styles.chatHeader}>
-          <Text style={[styles.chatName, { color: themeColors.text }]} numberOfLines={1}>
+          <Text style={[styles.chatName, { color: textColor }]} numberOfLines={1}>
             {item.name || 'Chat'}
           </Text>
-          <Text style={[styles.chatTime, { color: '#9ca3af' }]}>
+          <Text style={[styles.chatTime, { color: timeColor }]}>
             {item.last_message_time ? new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
 
         <View style={styles.chatFooter}>
-          <Text style={[styles.chatMessage, { color: '#6b7280' }]} numberOfLines={1}>
+          <Text style={[styles.chatMessage, { color: subTextColor }]} numberOfLines={1}>
             {item.last_message || 'No messages yet'}
           </Text>
           {(item.unread_count ?? 0) > 0 && (
@@ -67,7 +78,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   noBorder: {
     borderBottomWidth: 0,
@@ -97,7 +107,6 @@ const styles = StyleSheet.create({
     borderRadius: 6.5,
     backgroundColor: '#22c55e',
     borderWidth: 2,
-    borderColor: '#fff',
   },
   chatInfo: {
     flex: 1,

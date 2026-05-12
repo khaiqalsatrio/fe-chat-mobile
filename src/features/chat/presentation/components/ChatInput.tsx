@@ -4,12 +4,11 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface ChatInputProps {
   inputText: string;
@@ -25,16 +24,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   handleSend,
 }) => {
   const insets = useSafeAreaInsets();
+  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
+  const inputBg = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
+  const borderColor = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
+  const iconColor = useThemeColor({ light: '#4b5563', dark: '#9ca3af' }, 'text');
   
   return (
-    <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10 }]}>
+    <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10, backgroundColor, borderTopColor: borderColor }]}>
       <TouchableOpacity style={styles.plusButton}>
-        <Ionicons name="add-circle-outline" size={28} color="#4b5563" />
+        <Ionicons name="add-circle-outline" size={28} color={iconColor} />
       </TouchableOpacity>
       
-      <View style={styles.inputWrapper}>
+      <View style={[styles.inputWrapper, { backgroundColor: inputBg }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: textColor }]}
           placeholder="Type a message..."
           placeholderTextColor="#9ca3af"
           value={inputText}
@@ -66,11 +70,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
   },
   plusButton: {
     marginBottom: 10,
@@ -80,7 +82,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#f3f4f6',
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -90,7 +91,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     maxHeight: 100,
-    color: '#1f2937',
     paddingTop: 8,
     paddingBottom: 8,
   },

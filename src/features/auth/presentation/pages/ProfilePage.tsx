@@ -10,6 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  Switch,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,12 +18,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ProfileInfo } from '../components/ProfileInfo';
 import { SettingItem } from '../components/SettingItem';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { useAppTheme } from '@/core/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfilePage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colorScheme, toggleTheme } = useAppTheme();
 
   const {
     user,
@@ -32,22 +36,25 @@ export default function ProfilePage() {
     handleLogout,
   } = useProfile();
 
+  const backgroundColor = useThemeColor({ light: '#f9fafb', dark: '#000000' }, 'background');
+  const headerBg = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
+  const headerBorder = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const cardBg = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
+  const logoutBorder = useThemeColor({ light: '#fee2e2', dark: '#450a0a' }, 'background');
 
   return (
-    <View style={[styles.container, { backgroundColor: '#f9fafb' }]}>
+    <View style={[styles.container, { backgroundColor }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingTop: insets.top, backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Image 
               source={{ uri: user?.avatar_url || `https://i.pravatar.cc/150?u=${user?.id || 'me'}` }} 
               style={styles.myAvatarSmall} 
             />
-            <Text style={styles.headerTitle}>Profile</Text>
+            <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           </View>
-          <TouchableOpacity>
-            <Ionicons name="search" size={24} color="#374151" />
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -67,23 +74,37 @@ export default function ProfilePage() {
 
           {/* Settings Groups */}
           <View style={styles.settingsSection}>
-            <View style={styles.settingsCard}>
+            <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
+              <SettingItem 
+                icon="moon-outline" 
+                title="Dark Mode" 
+                subtitle="Enable dark theme" 
+                color="#8b5cf6"
+                rightElement={
+                  <Switch 
+                    value={colorScheme === 'dark'} 
+                    onValueChange={toggleTheme}
+                    trackColor={{ false: '#d1d5db', true: '#6366f1' }}
+                    thumbColor="#fff"
+                  />
+                }
+              />
               <SettingItem 
                 icon="person-outline" 
                 title="Account" 
                 subtitle="Security, Two-factor, Privacy" 
                 color="#6366f1"
+                isLast
               />
+            </View>
+
+            <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
               <SettingItem 
                 icon="notifications-outline" 
                 title="Notifications" 
                 subtitle="Push, Email, Quiet mode" 
                 color="#6366f1"
-                isLast
               />
-            </View>
-
-            <View style={styles.settingsCard}>
               <SettingItem 
                 icon="lock-closed-outline" 
                 title="Privacy" 
@@ -103,7 +124,7 @@ export default function ProfilePage() {
           {/* Logout Button */}
           <View style={styles.logoutSection}>
             <TouchableOpacity 
-              style={styles.logoutButton}
+              style={[styles.logoutButton, { backgroundColor: cardBg, borderColor: logoutBorder }]}
               onPress={handleLogout}
             >
               <Ionicons name="log-out-outline" size={22} color="#ef4444" />
@@ -127,9 +148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerContent: {
     flexDirection: 'row',
@@ -151,13 +170,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111827',
   },
   settingsSection: {
     paddingHorizontal: 20,
   },
   settingsCard: {
-    backgroundColor: '#fff',
     borderRadius: 24,
     paddingVertical: 8,
     marginBottom: 20,
@@ -178,10 +195,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#fee2e2',
     marginBottom: 20,
   },
   logoutText: {

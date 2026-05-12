@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -10,12 +10,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useContacts } from '../hooks/useContacts';
 import { ContactItem } from '../components/ContactItem';
-import { User } from '@/features/auth/domain/entities/user';
+import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { Colors } from '@/core/constants/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +24,8 @@ const { width } = Dimensions.get('window');
 export default function ContactListPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const themeColors = { text: '#111827' }; // Defaulting for now
+  const colorScheme = useColorScheme() ?? 'light';
+  const themeColors = Colors[colorScheme];
 
   const {
     sections,
@@ -33,15 +35,18 @@ export default function ContactListPage() {
     handleStartChat,
   } = useContacts();
 
+  const borderColor = colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6';
+  const sectionHeaderBg = colorScheme === 'dark' ? '#0a0a0a' : '#f9fafb';
+  const headerBg = colorScheme === 'dark' ? '#0a0a0a' : 'transparent';
 
   return (
-    <View style={[styles.container, { backgroundColor: '#fff' }]}>
+    <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : themeColors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View style={[styles.header, { paddingTop: insets.top, borderBottomColor: borderColor, backgroundColor: headerBg }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Image source={{ uri: 'https://i.pravatar.cc/150?u=me' }} style={styles.myAvatar} />
-            <Text style={[styles.headerTitle, { color: '#111827' }]}>Contacts</Text>
+            <Text style={[styles.headerTitle, { color: themeColors.text }]}>Contacts</Text>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.actionIcon}>
@@ -63,14 +68,18 @@ export default function ContactListPage() {
           showsVerticalScrollIndicator={false} 
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            <RefreshControl 
+              refreshing={isRefreshing} 
+              onRefresh={onRefresh} 
+              tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
+            />
           }
         >
           {/* Filter Section */}
-          <View style={styles.filterSection}>
+          <View style={[styles.filterSection, { borderBottomColor: borderColor, backgroundColor: themeColors.background }]}>
             <TouchableOpacity style={styles.filterItem}>
               <MaterialCommunityIcons name="filter-variant" size={24} color="#6366f1" />
-              <Text style={styles.filterText}>Filter by Status or Department</Text>
+              <Text style={[styles.filterText, { color: colorScheme === 'dark' ? '#9ca3af' : '#4b5563' }]}>Filter by Status or Department</Text>
               <Ionicons name="chevron-down" size={20} color="#9ca3af" />
             </TouchableOpacity>
           </View>
@@ -83,10 +92,10 @@ export default function ContactListPage() {
           ) : (
             sections.map((section) => (
               <View key={section.title} style={styles.section}>
-                <View style={styles.sectionHeader}>
+                <View style={[styles.sectionHeader, { backgroundColor: sectionHeaderBg, borderColor: borderColor }]}>
                   <Text style={styles.sectionTitle}>{section.title}</Text>
                 </View>
-                <View style={styles.sectionContent}>
+                <View style={[styles.sectionContent, { backgroundColor: themeColors.background }]}>
                   {section.data.map((contact, index) => (
                     <ContactItem
                       key={contact.id}
@@ -116,9 +125,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerContent: {
     flexDirection: 'row',
@@ -152,9 +159,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   filterSection: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   filterItem: {
     flexDirection: 'row',
@@ -166,7 +171,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: '#4b5563',
     fontWeight: '500',
   },
   section: {
@@ -175,10 +179,8 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    backgroundColor: '#f9fafb',
     borderBottomWidth: 1,
     borderTopWidth: 1,
-    borderColor: '#f3f4f6',
   },
   sectionTitle: {
     fontSize: 14,
@@ -187,7 +189,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   sectionContent: {
-    backgroundColor: '#fff',
     paddingHorizontal: 20,
   },
   emptyContainer: {

@@ -37,18 +37,21 @@ export default function MessageListPage() {
 
 
   return (
-    <View style={[styles.container, { backgroundColor: '#fff', paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : themeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {
+        backgroundColor: colorScheme === 'dark' ? '#0a0a0a' : 'transparent',
+        borderBottomColor: colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6'
+      }]}>
         <View style={styles.headerLeft}>
           <View style={styles.myAvatarWrapper}>
             <Image
               source={{ uri: myUserData?.avatar_url || 'https://i.pravatar.cc/150?u=me' }}
               style={styles.myAvatar}
             />
-            <View style={styles.onlineDotLarge} />
+            <View style={[styles.onlineDotLarge, { borderColor: themeColors.background }]} />
           </View>
-          <Text style={[styles.headerTitle, { color: '#111827' }]}>Messages</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Messager</Text>
         </View>
         <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search" size={26} color="#6366f1" />
@@ -64,7 +67,11 @@ export default function MessageListPage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
+            />
           }
         >
           {/* Chats List */}
@@ -80,10 +87,10 @@ export default function MessageListPage() {
                   item={chat}
                   isLast={index === conversations.length - 1}
                   themeColors={themeColors}
-                  onPress={(id) => router.push({ 
-        pathname: '/chat/[id]', 
-        params: { id, name: chat.name, avatar: chat.avatar } 
-      } as any)}
+                  onPress={(id) => router.push({
+                    pathname: '/chat/[id]',
+                    params: { id, name: chat.name, avatar: chat.avatar }
+                  } as any)}
                 />
               ))
             )}
@@ -96,7 +103,7 @@ export default function MessageListPage() {
         style={[styles.fab, { bottom: Platform.OS === 'ios' ? 100 : 90 }]}
         activeOpacity={0.8}
       >
-        <Feather name="edit-3" size={24} color="#fff" />
+        <Ionicons name="sparkles" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -113,7 +120,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -135,29 +141,6 @@ const styles = StyleSheet.create({
   searchButton: {
     padding: 8,
   },
-  activeContactsSection: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  activeListContent: {
-    paddingHorizontal: 20,
-  },
-  activeContactItem: {
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  activeAvatarWrapper: {
-    position: 'relative',
-    marginBottom: 8,
-  },
-  activeAvatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 2,
-    borderColor: '#6366f1',
-  },
   onlineDotLarge: {
     position: 'absolute',
     bottom: 4,
@@ -167,11 +150,6 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: '#22c55e',
     borderWidth: 2,
-    borderColor: '#fff',
-  },
-  activeContactName: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   chatsSection: {
     paddingHorizontal: 20,

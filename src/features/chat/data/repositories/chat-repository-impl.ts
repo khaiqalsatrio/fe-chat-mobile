@@ -39,11 +39,32 @@ export class ChatRepository {
            }
         }
 
+        // Extract last message content, supporting both string and object formats
+        let lastMessage = '';
+        const lm = room.last_message || room.latest_message || room.LastMessage || room.LatestMessage;
+        if (lm) {
+          if (typeof lm === 'string') {
+            lastMessage = lm;
+          } else if (typeof lm === 'object') {
+            lastMessage = lm.content || lm.Content || lm.text || lm.Text || lm.body || lm.Body || '';
+          }
+        }
+
+        // Check if there's a messages array instead
+        if (!lastMessage && Array.isArray(room.messages) && room.messages.length > 0) {
+          const last = room.messages[room.messages.length - 1];
+          lastMessage = typeof last === 'string' ? last : (last.content || last.Content || '');
+        }
+
+        // Final fallback to room.content
+        if (!lastMessage && room.content) lastMessage = room.content;
+        if (!lastMessage && room.Content) lastMessage = room.Content;
+
         return {
           id: room.id,
           conversation_id: room.id,
           name: name,
-          last_message: room.last_message || '',
+          last_message: lastMessage,
           last_message_time: room.updated_at || new Date().toISOString(),
           time: room.updated_at || new Date().toISOString(),
           unread_count: 0,
@@ -94,11 +115,32 @@ export class ChatRepository {
         }
       }
 
+      // Extract last message content
+      let lastMessage = '';
+      const lm = room.last_message || room.latest_message || room.LastMessage || room.LatestMessage;
+      if (lm) {
+        if (typeof lm === 'string') {
+          lastMessage = lm;
+        } else if (typeof lm === 'object') {
+          lastMessage = lm.content || lm.Content || lm.text || lm.Text || lm.body || lm.Body || '';
+        }
+      }
+
+      // Check if there's a messages array instead
+      if (!lastMessage && Array.isArray(room.messages) && room.messages.length > 0) {
+        const last = room.messages[room.messages.length - 1];
+        lastMessage = typeof last === 'string' ? last : (last.content || last.Content || '');
+      }
+
+      // Final fallback to room.content
+      if (!lastMessage && room.content) lastMessage = room.content;
+      if (!lastMessage && room.Content) lastMessage = room.Content;
+
       return {
         id: room.id,
         conversation_id: room.id,
         name: name,
-        last_message: room.last_message || '',
+        last_message: lastMessage,
         last_message_time: room.updated_at || new Date().toISOString(),
         time: room.updated_at || new Date().toISOString(),
         unread_count: 0,
