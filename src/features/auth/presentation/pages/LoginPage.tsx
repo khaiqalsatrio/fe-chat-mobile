@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLogin } from '../hooks/useLogin';
+
 import {
   StyleSheet,
   View,
@@ -11,48 +13,31 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Colors } from '@/core/constants/theme';
-import { useColorScheme } from '@/core/hooks/use-color-scheme';
-import { authRepository } from '../../data/repositories/auth-repository-impl';
+import { AuthHeader } from '../components/AuthHeader';
+import { LoginForm } from '../components/LoginForm';
+import { SocialAuthButtons } from '../components/SocialAuthButtons';
 
 const { width } = Dimensions.get('window');
 
 export default function LoginPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme() ?? 'light';
-  const themeColors = Colors[colorScheme];
   
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await authRepository.login(email, password);
-      if (response.status === 200) {
-        router.replace('/(tabs)');
-      } else {
-        setError(response.message || 'Login failed');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    isLoading,
+    error,
+    setError,
+    handleLogin,
+    toggleShowPassword,
+    clearError,
+  } = useLogin();
 
   return (
     <View style={[styles.container, { backgroundColor: '#f9fafb', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -61,14 +46,10 @@ export default function LoginPage() {
         style={{ flex: 1 }}
       >
         <View style={styles.content}>
-          {/* Top Logo/Icon */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoBox}>
-              <Ionicons name="chatbubble-ellipses" size={32} color="#fff" />
-            </View>
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to continue your conversations</Text>
-          </View>
+          <AuthHeader 
+            title="Welcome back" 
+            subtitle="Sign in to continue your conversations" 
+          />
 
           {/* Illustration */}
           <View style={styles.illustrationWrapper}>
@@ -87,95 +68,27 @@ export default function LoginPage() {
             </View>
           )}
 
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email address</Text>
-              <View style={styles.inputWrapper}>
-                <Feather name="mail" size={18} color="#9ca3af" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="name@company.com"
-                  placeholderTextColor="#9ca3af"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (error) setError(null);
-                  }}
-                />
-              </View>
-            </View>
+          <LoginForm
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            showPassword={showPassword}
+            toggleShowPassword={toggleShowPassword}
+            isLoading={isLoading}
+            handleLogin={handleLogin}
+            error={error}
+            clearError={clearError}
+          />
 
-            {/* Password */}
-            <View style={styles.inputGroup}>
-              <View style={styles.labelRow}>
-                <Text style={styles.label}>Password</Text>
-                <TouchableOpacity>
-                  <Text style={styles.forgotText}>Forgot password?</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.inputWrapper}>
-                <Feather name="lock" size={18} color="#9ca3af" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
-                  placeholderTextColor="#9ca3af"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (error) setError(null);
-                  }}
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Feather name={showPassword ? "eye" : "eye-off"} size={18} color="#9ca3af" />
-                </TouchableOpacity>
-              </View>
-            </View>
+          <SocialAuthButtons />
 
-            {/* Login Button */}
-            <TouchableOpacity 
-              style={[styles.loginButton, isLoading && { opacity: 0.7 }]} 
-              activeOpacity={0.8}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <Text style={styles.loginButtonText}>
-                {isLoading ? 'Signing in...' : 'Login'}
-              </Text>
-              {!isLoading && <Ionicons name="arrow-forward" size={18} color="#fff" style={{ marginLeft: 8 }} />}
+          {/* Register Link */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/register')}>
+              <Text style={styles.registerLink}>Register</Text>
             </TouchableOpacity>
-
-            {/* Social Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>OR SIGN IN WITH</Text>
-              <View style={styles.divider} />
-            </View>
-
-            {/* Social Buttons */}
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton}>
-                <FontAwesome5 name="google" size={18} color="#4285F4" />
-                <Text style={styles.socialButtonText}>Google</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-apple" size={20} color="#000" />
-                <Text style={styles.socialButtonText}>Apple</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Register Link */}
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/register')}>
-                <Text style={styles.registerLink}>Register</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -193,31 +106,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
   },
-  logoContainer: {
-    alignItems: 'center',
-  },
-  logoBox: {
-    backgroundColor: '#6366f1',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 12,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#4b5563',
-    textAlign: 'center',
-  },
   illustrationWrapper: {
     marginTop: 16,
     borderRadius: 24,
@@ -228,97 +116,6 @@ const styles = StyleSheet.create({
   illustration: {
     width: '100%',
     height: '100%',
-  },
-  form: {
-    marginTop: 20,
-    gap: 12,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  inputGroup: {
-    gap: 6,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  forgotText: {
-    fontSize: 13,
-    color: '#4f46e5',
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: '#111827',
-  },
-  loginButton: {
-    backgroundColor: '#6366f1',
-    height: 52,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e5e7eb',
-  },
-  dividerText: {
-    paddingHorizontal: 12,
-    fontSize: 11,
-    color: '#9ca3af',
-    fontWeight: '600',
-  },
-  socialRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  socialButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 52,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#fff',
-  },
-  socialButtonText: {
-    marginLeft: 10,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#374151',
   },
   footer: {
     flexDirection: 'row',

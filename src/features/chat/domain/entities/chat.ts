@@ -10,10 +10,14 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  name?: string;
-  last_message?: string;
+  conversation_id: string;
+  name: string;
+  last_message: string;
   last_message_time?: string;
-  unread_count?: number;
+  time: string;
+  unread_count: number;
+  avatar: string;
+  type: 'PRIVATE' | 'GROUP';
   participants?: any[];
 }
 
