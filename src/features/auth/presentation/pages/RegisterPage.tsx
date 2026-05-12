@@ -14,6 +14,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { authRepository } from '../../data/repositories/auth-repository-impl';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -29,6 +30,42 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegister = async () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!agree) {
+      setError('Please agree to the Terms and Privacy');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Assuming fullName is used as username for now as per repository
+      const response = await authRepository.register(fullName, email, password);
+      if (response.status === 201 || response.status === 200) {
+        router.replace('/login');
+      } else {
+        setError(response.message || 'Registration failed');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: '#f9fafb', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -46,6 +83,14 @@ export default function RegisterPage() {
             <View style={{ width: 40 }} />
           </View>
 
+          {/* Error Message */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={20} color="#ef4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {/* Form Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -56,15 +101,18 @@ export default function RegisterPage() {
             {/* Inputs */}
             <View style={styles.form}>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Full Name</Text>
+                <Text style={styles.label}>Username</Text>
                 <View style={styles.inputWrapper}>
                   <Feather name="user" size={20} color="#9ca3af" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="John Doe"
+                    placeholder="khaiqal"
                     placeholderTextColor="#9ca3af"
                     value={fullName}
-                    onChangeText={setFullName}
+                    onChangeText={(text) => {
+                      setFullName(text);
+                      if (error) setError(null);
+                    }}
                   />
                 </View>
               </View>
@@ -80,7 +128,10 @@ export default function RegisterPage() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (error) setError(null);
+                    }}
                   />
                 </View>
               </View>
@@ -95,7 +146,10 @@ export default function RegisterPage() {
                     placeholderTextColor="#9ca3af"
                     secureTextEntry={!showPassword}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (error) setError(null);
+                    }}
                   />
                   <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                     <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#9ca3af" />
@@ -113,7 +167,10 @@ export default function RegisterPage() {
                     placeholderTextColor="#9ca3af"
                     secureTextEntry={!showPassword}
                     value={confirmPassword}
-                    onChangeText={setConfirmPassword}
+                    onChangeText={(text) => {
+                      setConfirmPassword(text);
+                      if (error) setError(null);
+                    }}
                   />
                 </View>
               </View>
@@ -132,8 +189,15 @@ export default function RegisterPage() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-              <Text style={styles.buttonText}>Create Account</Text>
+            <TouchableOpacity 
+              style={[styles.button, isLoading && { opacity: 0.7 }]} 
+              activeOpacity={0.8}
+              onPress={handleRegister}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Creating account...' : 'Create Account'}
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.dividerContainer}>
@@ -299,5 +363,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#3730a3',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    padding: 12,
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#fee2e2',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -7,6 +7,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { authRepository } from '@/features/auth/data/repositories/auth-repository-impl';
 
 const { width } = Dimensions.get('window');
 
@@ -15,6 +16,16 @@ export default function LandingPage() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = await authRepository.isAuthenticated();
+      if (authenticated) {
+        router.replace('/(tabs)');
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>

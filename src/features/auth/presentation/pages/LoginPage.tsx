@@ -15,6 +15,7 @@ import { Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { authRepository } from '../../data/repositories/auth-repository-impl';
 
 const { width } = Dimensions.get('window');
 
@@ -27,6 +28,31 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await authRepository.login(email, password);
+      if (response.status === 200) {
+        router.replace('/(tabs)');
+      } else {
+        setError(response.message || 'Login failed');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: '#f9fafb', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -53,6 +79,14 @@ export default function LoginPage() {
             />
           </View>
 
+          {/* Error Message */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={20} color="#ef4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {/* Form */}
           <View style={styles.form}>
             {/* Email */}
@@ -67,7 +101,10 @@ export default function LoginPage() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (error) setError(null);
+                  }}
                 />
               </View>
             </View>
@@ -88,7 +125,10 @@ export default function LoginPage() {
                   placeholderTextColor="#9ca3af"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (error) setError(null);
+                  }}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                   <Feather name={showPassword ? "eye" : "eye-off"} size={18} color="#9ca3af" />
@@ -98,12 +138,15 @@ export default function LoginPage() {
 
             {/* Login Button */}
             <TouchableOpacity 
-              style={styles.loginButton} 
+              style={[styles.loginButton, isLoading && { opacity: 0.7 }]} 
               activeOpacity={0.8}
-              onPress={() => router.replace('/(tabs)')}
+              onPress={handleLogin}
+              disabled={isLoading}
             >
-              <Text style={styles.loginButtonText}>Login</Text>
-              <Ionicons name="arrow-forward" size={18} color="#fff" style={{ marginLeft: 8 }} />
+              <Text style={styles.loginButtonText}>
+                {isLoading ? 'Signing in...' : 'Login'}
+              </Text>
+              {!isLoading && <Ionicons name="arrow-forward" size={18} color="#fff" style={{ marginLeft: 8 }} />}
             </TouchableOpacity>
 
             {/* Social Divider */}
@@ -290,5 +333,21 @@ const styles = StyleSheet.create({
     color: '#4f46e5',
     fontSize: 15,
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#fee2e2',
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });
