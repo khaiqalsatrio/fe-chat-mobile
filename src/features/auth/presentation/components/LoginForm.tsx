@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface LoginFormProps {
   email: string;
@@ -33,17 +34,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   error,
   clearError,
 }) => {
+  const labelColor = useThemeColor({ light: '#374151', dark: '#d1d5db' }, 'text');
+  const inputBgColor = useThemeColor({ light: '#f3f4f6', dark: '#1f2937' }, 'background');
+  const inputTextColor = useThemeColor({ light: '#111827', dark: '#f9fafb' }, 'text');
+  const iconColor = useThemeColor({ light: '#9ca3af', dark: '#6b7280' }, 'icon');
+  const placeholderColor = useThemeColor({ light: '#9ca3af', dark: '#6b7280' }, 'text');
+
   return (
     <View style={styles.form}>
       {/* Email */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email address</Text>
-        <View style={styles.inputWrapper}>
-          <Feather name="mail" size={18} color="#9ca3af" style={styles.inputIcon} />
+        <Text style={[styles.label, { color: labelColor }]}>Email address</Text>
+        <View style={[styles.inputWrapper, { backgroundColor: inputBgColor }]}>
+          <Feather name="mail" size={18} color={iconColor} style={styles.inputIcon} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: inputTextColor }]}
             placeholder="name@company.com"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={placeholderColor}
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -58,17 +65,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Password */}
       <View style={styles.inputGroup}>
         <View style={styles.labelRow}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={[styles.label, { color: labelColor }]}>Password</Text>
           <TouchableOpacity>
             <Text style={styles.forgotText}>Forgot password?</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.inputWrapper}>
-          <Feather name="lock" size={18} color="#9ca3af" style={styles.inputIcon} />
+        <View style={[styles.inputWrapper, { backgroundColor: inputBgColor }]}>
+          <Feather name="lock" size={18} color={iconColor} style={styles.inputIcon} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: inputTextColor }]}
             placeholder="••••••••"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={placeholderColor}
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={(text) => {
@@ -77,7 +84,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             }}
           />
           <TouchableOpacity onPress={toggleShowPassword}>
-            <Feather name={showPassword ? "eye" : "eye-off"} size={18} color="#9ca3af" />
+            <Feather name={showPassword ? "eye" : "eye-off"} size={18} color={iconColor} />
           </TouchableOpacity>
         </View>
       </View>

@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 import { RegisterForm } from '../components/RegisterForm';
 
 
@@ -38,8 +39,12 @@ export default function RegisterPage() {
     clearError,
   } = useRegister();
 
+  const backgroundColor = useThemeColor({}, 'background');
+  const headerIconColor = useThemeColor({ light: '#1f2937', dark: '#f9fafb' }, 'text');
+  const footerTextColor = useThemeColor({ light: '#4b5563', dark: '#9ca3af' }, 'text');
+
   return (
-    <View style={[styles.container, { backgroundColor: '#f9fafb', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { backgroundColor, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -48,7 +53,7 @@ export default function RegisterPage() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#1f2937" />
+              <Ionicons name="arrow-back" size={24} color={headerIconColor} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Modern Messaging</Text>
             <View style={{ width: 40 }} />
@@ -81,6 +86,14 @@ export default function RegisterPage() {
             error={error}
             clearError={clearError}
           />
+
+          {/* Login Link */}
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: footerTextColor }]}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/login')}>
+              <Text style={styles.loginLink}>Login</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -129,5 +142,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 8,
     fontWeight: '500',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  footerText: {
+    fontSize: 15,
+  },
+  loginLink: {
+    color: '#4f46e5',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });

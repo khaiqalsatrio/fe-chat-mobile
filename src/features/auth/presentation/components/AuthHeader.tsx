@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface AuthHeaderProps {
   title: string;
@@ -8,13 +9,16 @@ interface AuthHeaderProps {
 }
 
 export const AuthHeader: React.FC<AuthHeaderProps> = ({ title, subtitle }) => {
+  const titleColor = useThemeColor({ light: '#111827', dark: '#f9fafb' }, 'text');
+  const subtitleColor = useThemeColor({ light: '#4b5563', dark: '#9ca3af' }, 'text');
+
   return (
     <View style={styles.logoContainer}>
       <View style={styles.logoBox}>
         <Ionicons name="chatbubble-ellipses" size={32} color="#fff" />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: subtitleColor }]}>{subtitle}</Text>
     </View>
   );
 };

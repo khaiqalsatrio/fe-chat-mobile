@@ -15,6 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { useColorScheme } from '@/core/hooks/use-color-scheme';
 import { AuthHeader } from '../components/AuthHeader';
 import { LoginForm } from '../components/LoginForm';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
@@ -39,8 +41,11 @@ export default function LoginPage() {
     clearError,
   } = useLogin();
 
+  const backgroundColor = useThemeColor({}, 'background');
+  const footerTextColor = useThemeColor({ light: '#4b5563', dark: '#9ca3af' }, 'text');
+  
   return (
-    <View style={[styles.container, { backgroundColor: '#f9fafb', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { backgroundColor, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -85,7 +90,7 @@ export default function LoginPage() {
 
           {/* Register Link */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={[styles.footerText, { color: footerTextColor }]}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => router.push('/register')}>
               <Text style={styles.registerLink}>Register</Text>
             </TouchableOpacity>

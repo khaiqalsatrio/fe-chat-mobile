@@ -1,22 +1,23 @@
+import { Colors } from '@/core/constants/theme';
+import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
   ActivityIndicator,
+  Dimensions,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useContacts } from '../hooks/useContacts';
+import { StatusList } from '../../../status/presentation/components/StatusList';
 import { ContactItem } from '../components/ContactItem';
-import { useColorScheme } from '@/core/hooks/use-color-scheme';
-import { Colors } from '@/core/constants/theme';
+import { useContacts } from '../hooks/useContacts';
 
 const { width } = Dimensions.get('window');
 
@@ -64,17 +65,20 @@ export default function ContactListPage() {
           <ActivityIndicator size="large" color="#6366f1" />
         </View>
       ) : (
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
           refreshControl={
-            <RefreshControl 
-              refreshing={isRefreshing} 
-              onRefresh={onRefresh} 
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
               tintColor={colorScheme === 'dark' ? '#fff' : '#000'}
             />
           }
         >
+          {/* Status Section */}
+          <StatusList themeColors={themeColors} />
+
           {/* Filter Section */}
           <View style={[styles.filterSection, { borderBottomColor: borderColor, backgroundColor: themeColors.background }]}>
             <TouchableOpacity style={styles.filterItem}>
