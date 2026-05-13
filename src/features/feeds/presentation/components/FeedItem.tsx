@@ -31,7 +31,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({ user, image, likes, comments
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <Image source={user.avatar} style={styles.avatar} />
           </View>
           <View style={styles.userText}>
             <Text style={[styles.username, { color: themeColors.text }]}>{user.name}</Text>
@@ -45,7 +45,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({ user, image, likes, comments
 
       {/* Main Image */}
       <Image 
-        source={{ uri: image }} 
+        source={image} 
         style={styles.mainImage} 
         contentFit="cover"
       />

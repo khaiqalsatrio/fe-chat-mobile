@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProfile } from '../hooks/useProfile';
 
 import { useAppTheme } from '@/core/context/ThemeContext';
@@ -11,21 +11,24 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileInfo } from '../components/ProfileInfo';
-import { SettingItem } from '../components/SettingItem';
+
+import { MOCK_POSTS } from '@/features/feeds/presentation/constants/mock-posts';
 
 const { width } = Dimensions.get('window');
+const COLUMN_WIDTH = width / 3;
 
 export default function ProfilePage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colorScheme, toggleTheme } = useAppTheme();
+  const { colorScheme } = useAppTheme();
+  const [activeTab, setActiveTab] = useState('grid');
 
   const {
     user,
@@ -33,25 +36,40 @@ export default function ProfilePage() {
     isRefreshing,
     isUpdatingPhoto,
     onRefresh,
-    handleLogout,
     updatePhoto,
   } = useProfile();
+
+  const handlePostPress = (post: any, index: number) => {
+    router.push({
+      pathname: `/post/${post.id}` as any,
+      params: {
+        index: index.toString(),
+        username: user?.username || 'User',
+        avatar: user?.avatar_url || '',
+      }
+    });
+  };
 
   const backgroundColor = useThemeColor({ light: '#f9fafb', dark: '#000000' }, 'background');
   const headerBg = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
   const headerBorder = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
   const textColor = useThemeColor({}, 'text');
-  const cardBg = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
-  const logoutBorder = useThemeColor({ light: '#fee2e2', dark: '#450a0a' }, 'background');
+  const tabBorderActive = '#6366f1';
+  const tabIconInactive = useThemeColor({ light: '#9ca3af', dark: '#4b5563' }, 'text');
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top, backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           </View>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => router.push('/settings')}
+          >
+            <Ionicons name="settings-outline" size={24} color={textColor} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -73,65 +91,49 @@ export default function ProfilePage() {
             isUpdating={isUpdatingPhoto} 
           />
 
-          {/* Settings Groups */}
-          <View style={styles.settingsSection}>
-            <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
-              <SettingItem
-                icon="moon-outline"
-                title="Dark Mode"
-                subtitle="Enable dark theme"
-                color="#8b5cf6"
-                rightElement={
-                  <Switch
-                    value={colorScheme === 'dark'}
-                    onValueChange={toggleTheme}
-                    trackColor={{ false: '#d1d5db', true: '#6366f1' }}
-                    thumbColor="#fff"
-                  />
-                }
+          <View style={[styles.tabBar, { borderBottomColor: headerBorder }]}>
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'grid' && { borderBottomColor: tabBorderActive, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab('grid')}
+            >
+              <Ionicons 
+                name="grid-outline" 
+                size={22} 
+                color={activeTab === 'grid' ? tabBorderActive : tabIconInactive} 
               />
-              <SettingItem
-                icon="person-outline"
-                title="Account"
-                subtitle="Security, Two-factor, Privacy"
-                color="#6366f1"
-                isLast
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'video' && { borderBottomColor: tabBorderActive, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab('video')}
+            >
+              <Ionicons 
+                name="play-circle-outline" 
+                size={24} 
+                color={activeTab === 'video' ? tabBorderActive : tabIconInactive} 
               />
-            </View>
-
-            <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
-              <SettingItem
-                icon="notifications-outline"
-                title="Notifications"
-                subtitle="Push, Email, Quiet mode"
-                color="#6366f1"
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'tag' && { borderBottomColor: tabBorderActive, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab('tag')}
+            >
+              <Ionicons 
+                name="person-add-outline" 
+                size={22} 
+                color={activeTab === 'tag' ? tabBorderActive : tabIconInactive} 
               />
-              <SettingItem
-                icon="lock-closed-outline"
-                title="Privacy"
-                subtitle="Data, Visibility, Contacts"
-                color="#10b981"
-              />
-              <SettingItem
-                icon="help-circle-outline"
-                title="Help"
-                subtitle="Support center, FAQ"
-                color="#6b7280"
-                isLast
-              />
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Logout Button */}
-          <View style={styles.logoutSection}>
-            <TouchableOpacity
-              style={[styles.logoutButton, { backgroundColor: cardBg, borderColor: logoutBorder }]}
-              onPress={handleLogout}
-            >
-              <Ionicons name="log-out-outline" size={22} color="#ef4444" />
-              <Text style={styles.logoutText}>Log Out</Text>
-            </TouchableOpacity>
-            <Text style={styles.appVersion}>APP VERSION 2.4.1 (STABLE)</Text>
+          <View style={styles.gridContainer}>
+            {MOCK_POSTS.map((post, index: number) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.gridItem}
+                onPress={() => handlePostPress(post, index)}
+              >
+                <Image source={post.uri} style={styles.gridImage} contentFit="cover" />
+              </TouchableOpacity>
+            ))}
           </View>
         </ScrollView>
       )}
@@ -162,54 +164,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  myAvatarSmall: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 12,
-  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
   },
-  settingsSection: {
-    paddingHorizontal: 20,
-  },
-  settingsCard: {
-    borderRadius: 24,
-    paddingVertical: 8,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  logoutSection: {
-    paddingHorizontal: 20,
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  logoutButton: {
-    width: '100%',
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
+  settingsButton: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
-    borderWidth: 1,
-    marginBottom: 20,
   },
-  logoutText: {
-    marginLeft: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ef4444',
+  tabBar: {
+    flexDirection: 'row',
+    height: 50,
+    borderBottomWidth: 1,
+    marginTop: 10,
   },
-  appVersion: {
-    fontSize: 11,
-    color: '#9ca3af',
-    fontWeight: 'bold',
-    letterSpacing: 1,
+  tabItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  gridItem: {
+    width: COLUMN_WIDTH,
+    height: COLUMN_WIDTH,
+    padding: 1,
+  },
+  gridImage: {
+    flex: 1,
+    backgroundColor: '#333',
   },
 });
