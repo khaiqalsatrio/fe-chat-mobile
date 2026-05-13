@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,6 +35,24 @@ export default function ContactListPage() {
     handleStartChat,
   } = useContacts();
 
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [isSearchVisible, setIsSearchVisible] = React.useState(false);
+
+  const filteredSections = sections.map(section => ({
+    ...section,
+    data: section.data.filter(contact =>
+      contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(section => section.data.length > 0);
+
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
+    if (isSearchVisible) {
+      setSearchQuery('');
+    }
+  };
+
   const borderColor = colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6';
   const sectionHeaderBg = colorScheme === 'dark' ? '#0a0a0a' : '#f9fafb';
   const headerBg = colorScheme === 'dark' ? '#0a0a0a' : 'transparent';
@@ -43,17 +62,36 @@ export default function ContactListPage() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top, borderBottomColor: borderColor, backgroundColor: headerBg }]}>
         <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: themeColors.text }]}>Contacts</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="person-add-outline" size={24} color="#6366f1" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="search" size={24} color="#6366f1" />
-            </TouchableOpacity>
-          </View>
+          {isSearchVisible ? (
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color="#6366f1" style={styles.searchIconInside} />
+              <TextInput
+                style={[styles.searchInput, { color: themeColors.text }]}
+                placeholder="Search contacts..."
+                placeholderTextColor="#9ca3af"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              <TouchableOpacity onPress={toggleSearch}>
+                <Ionicons name="close" size={24} color="#9ca3af" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.headerLeft}>
+                <Text style={[styles.headerTitle, { color: themeColors.text }]}>Contacts</Text>
+              </View>
+              <View style={styles.headerActions}>
+                <TouchableOpacity style={styles.actionIcon}>
+                  <Ionicons name="person-add-outline" size={24} color="#6366f1" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionIcon} onPress={toggleSearch}>
+                  <Ionicons name="search" size={24} color="#6366f1" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       </View>
 
@@ -83,12 +121,14 @@ export default function ContactListPage() {
           </View>
 
           {/* Sections */}
-          {sections.length === 0 ? (
+          {filteredSections.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No contacts found.</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? `No results for "${searchQuery}"` : "No contacts found."}
+              </Text>
             </View>
           ) : (
-            sections.map((section) => (
+            filteredSections.map((section) => (
               <View key={section.title} style={styles.section}>
                 <View style={[styles.sectionHeader, { backgroundColor: sectionHeaderBg, borderColor: borderColor }]}>
                   <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -150,8 +190,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   actionIcon: {
-    marginLeft: 20,
-    padding: 4,
+    marginLeft: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchIconInside: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    padding: 0,
   },
   scrollContent: {
     paddingTop: 0,

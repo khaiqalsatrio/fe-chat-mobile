@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -35,6 +36,21 @@ export default function MessageListPage() {
     onRefresh,
   } = useConversations();
 
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [isSearchVisible, setIsSearchVisible] = React.useState(false);
+
+  const filteredConversations = conversations.filter(chat =>
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chat.last_message?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
+    if (isSearchVisible) {
+      setSearchQuery('');
+    }
+  };
+
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : themeColors.background, paddingTop: insets.top }]}>
@@ -43,12 +59,31 @@ export default function MessageListPage() {
         backgroundColor: colorScheme === 'dark' ? '#0a0a0a' : 'transparent',
         borderBottomColor: colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6'
       }]}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.headerTitle, { color: themeColors.text }]}>Messager</Text>
-        </View>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={26} color="#6366f1" />
-        </TouchableOpacity>
+        {isSearchVisible ? (
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#6366f1" style={styles.searchIconInside} />
+            <TextInput
+              style={[styles.searchInput, { color: themeColors.text }]}
+              placeholder="Search conversations..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+            <TouchableOpacity onPress={toggleSearch}>
+              <Ionicons name="close" size={24} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.headerLeft}>
+              <Text style={[styles.headerTitle, { color: themeColors.text }]}>Messager</Text>
+            </View>
+            <TouchableOpacity style={styles.searchButton} onPress={toggleSearch}>
+              <Ionicons name="search" size={24} color="#6366f1" />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {isLoading ? (
@@ -72,16 +107,18 @@ export default function MessageListPage() {
 
           {/* Chats List */}
           <View style={styles.chatsSection}>
-            {conversations.length === 0 ? (
+            {filteredConversations.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No conversations yet.</Text>
+                <Text style={styles.emptyText}>
+                  {searchQuery ? `No results for "${searchQuery}"` : "No conversations yet."}
+                </Text>
               </View>
             ) : (
-              conversations.map((chat, index) => (
+              filteredConversations.map((chat, index) => (
                 <ConversationItem
                   key={chat.id}
                   item={chat}
-                  isLast={index === conversations.length - 1}
+                  isLast={index === filteredConversations.length - 1}
                   themeColors={themeColors}
                   onPress={(id) => router.push({
                     pathname: '/chat/[id]',
@@ -135,7 +172,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   searchButton: {
-    padding: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   onlineDotLarge: {
     position: 'absolute',
@@ -146,6 +195,24 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: '#22c55e',
     borderWidth: 2,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+  },
+  searchIconInside: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    padding: 0, // Remove default padding on Android
   },
   chatsSection: {
     paddingHorizontal: 20,
