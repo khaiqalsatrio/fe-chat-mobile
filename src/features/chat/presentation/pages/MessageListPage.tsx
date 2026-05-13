@@ -1,6 +1,5 @@
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
-import { getAvatarUrl } from '@/core/utils/image-utils';
 import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -67,9 +66,9 @@ export default function MessageListPage() {
           const pId = typeof p === 'string' ? p : p.id;
           return pId && String(pId) !== String(user.id);
         });
-        
+
         const otherId = otherParticipant ? (typeof otherParticipant === 'string' ? otherParticipant : otherParticipant.id) : null;
-        
+
         if (otherId) {
           const key = `private_${otherId}`;
           if (seen.has(key)) return false;
@@ -88,7 +87,7 @@ export default function MessageListPage() {
       if (directId) {
         ids.add(String(directId));
       }
-      
+
       // 2. Fallback: Cari dari daftar participants
       if (chat.participants && Array.isArray(chat.participants)) {
         chat.participants.forEach((p: any) => {
@@ -191,8 +190,8 @@ export default function MessageListPage() {
       {/* FAB */}
       <TouchableOpacity
         style={[
-          styles.fab, 
-          { 
+          styles.fab,
+          {
             bottom: Platform.OS === 'ios' ? 75 : 65,
             backgroundColor: colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.9)',
             borderColor: colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.15)',
@@ -201,8 +200,8 @@ export default function MessageListPage() {
         ]}
         activeOpacity={0.8}
       >
-        <Image 
-          source={require('@/app/assets/meta3.png')} 
+        <Image
+          source={require('@/app/assets/meta3.png')}
           style={{ width: 50, height: 50 }}
           contentFit="contain"
         />

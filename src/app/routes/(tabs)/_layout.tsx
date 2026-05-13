@@ -67,6 +67,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="feeds"
+        options={{
+          title: 'Feeds',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon 
+              name={focused ? "newspaper-sharp" : "newspaper-outline"} 
+              color={color} 
+              focused={focused} 
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Contacts',

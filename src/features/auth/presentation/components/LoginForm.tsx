@@ -1,13 +1,13 @@
+import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   StyleSheet,
-  View,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
-import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface LoginFormProps {
   email: string;
@@ -90,8 +90,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </View>
 
       {/* Login Button */}
-      <TouchableOpacity 
-        style={[styles.loginButton, isLoading && { opacity: 0.7 }]} 
+      <TouchableOpacity
+        style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
         activeOpacity={0.8}
         onPress={handleLogin}
         disabled={isLoading}

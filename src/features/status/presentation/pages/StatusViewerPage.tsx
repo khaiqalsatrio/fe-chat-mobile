@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Dimensions, Alert } from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { useStatus } from '../hooks/useStatus';
 import { ModernAlert } from '@/shared/components/ModernAlert';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useStatus } from '../hooks/useStatus';
 
 const { width, height } = Dimensions.get('window');
 
@@ -80,10 +80,10 @@ export default function StatusViewerPage() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="light" translucent />
-      
+
       {/* Background Image Status */}
-      <Image 
-        source={{ uri: (params.image as string) || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b' }} 
+      <Image
+        source={{ uri: (params.image as string) || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b' }}
         style={styles.bgImage}
         contentFit="cover"
       />
@@ -153,7 +153,7 @@ export default function StatusViewerPage() {
         </View>
       </View>
 
-      <ModernAlert 
+      <ModernAlert
         visible={alertConfig.visible}
         title={alertConfig.title}
         message={alertConfig.message}
