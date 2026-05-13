@@ -1,14 +1,14 @@
+import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
-  View,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useThemeColor } from '@/core/hooks/use-theme-color';
 
 interface ChatInputProps {
   inputText: string;
@@ -29,13 +29,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const inputBg = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
   const borderColor = useThemeColor({ light: '#f3f4f6', dark: '#1a1a1a' }, 'background');
   const iconColor = useThemeColor({ light: '#4b5563', dark: '#9ca3af' }, 'text');
-  
+
   return (
     <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 10, backgroundColor, borderTopColor: borderColor }]}>
       <TouchableOpacity style={styles.plusButton}>
         <Ionicons name="add-circle-outline" size={28} color={iconColor} />
       </TouchableOpacity>
-      
+
       <View style={[styles.inputWrapper, { backgroundColor: inputBg }]}>
         <TextInput
           style={[styles.input, { color: textColor }]}
@@ -51,8 +51,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity 
-        style={[styles.sendButton, (!inputText.trim() || isSending) && { opacity: 0.5 }]} 
+      <TouchableOpacity
+        style={[styles.sendButton, (!inputText.trim() || isSending) && { opacity: 0.5 }]}
         onPress={handleSend}
         disabled={!inputText.trim() || isSending}
       >

@@ -1,24 +1,24 @@
+import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  StyleSheet,
-  View,
+  ImageBackground,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
+  StyleSheet,
   Text,
-  ImageBackground,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatHeader } from '../components/ChatHeader';
 import { ChatInput } from '../components/ChatInput';
 import { MessageBubble } from '../components/MessageBubble';
 import { useChatDetail } from '../hooks/useChatDetail';
-import { useThemeColor } from '@/core/hooks/use-theme-color';
-import { useColorScheme } from '@/core/hooks/use-color-scheme';
 
 const { width } = Dimensions.get('window');
 
@@ -31,7 +31,7 @@ export default function ChatDetailPage() {
   const { id: conversationId, name, avatar } = useLocalSearchParams<{ id: string, name?: string, avatar?: string }>();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
-  
+
   const backgroundColor = useThemeColor({ light: '#f9fafb', dark: '#000000' }, 'background');
   const dividerBg = useThemeColor({ light: '#e5e7eb', dark: '#1f2937' }, 'background');
   const dividerText = useThemeColor({ light: '#9ca3af', dark: '#6b7280' }, 'text');
@@ -71,20 +71,20 @@ export default function ChatDetailPage() {
 
   return (
     <View style={[
-      styles.container, 
-      { 
+      styles.container,
+      {
         backgroundColor,
         paddingBottom: Platform.OS === 'android' ? Math.max(0, keyboardHeight - insets.bottom + 20) : 0
       }
     ]}>
-      <ImageBackground 
-        source={currentWallpaper} 
+      <ImageBackground
+        source={currentWallpaper}
         style={styles.wallpaper}
         resizeMode="cover"
       >
         {/* Dark overlay for better readability */}
         <View style={[
-          styles.overlay, 
+          styles.overlay,
           { backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.1)' }
         ]}>
           <View style={{ flex: 1 }}>
@@ -119,7 +119,7 @@ export default function ChatDetailPage() {
           </View>
 
           {Platform.OS === 'ios' ? (
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
               behavior="padding"
               keyboardVerticalOffset={90}
             >
