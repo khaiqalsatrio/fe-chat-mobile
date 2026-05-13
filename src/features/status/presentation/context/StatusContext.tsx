@@ -8,7 +8,7 @@ interface StatusContextType {
   myStatuses: any[];
   allStatuses: Record<string, any[]>;
   isUploading: boolean;
-  uploadStatus: () => Promise<void>;
+  uploadStatus: () => Promise<boolean>;
   deleteStatus: (id: string) => Promise<boolean>;
   fetchMyStatuses: () => Promise<void>;
   fetchAllStatuses: () => Promise<void>;
@@ -63,10 +63,10 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [fetchMyStatuses, fetchAllStatuses]);
 
-  const uploadStatus = async () => {
+  const uploadStatus = async (): Promise<boolean> => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== 'granted') return false;
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
@@ -91,9 +91,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
 
         if (response.status === 201 || response.status === 200) {
-          Alert.alert('Success', 'Your status has been updated!');
           fetchMyStatuses();
           fetchAllStatuses();
+          return true;
         }
       }
     } catch (error: any) {
@@ -102,6 +102,7 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } finally {
       setIsUploading(false);
     }
+    return false;
   };
 
   const deleteStatus = async (id: string) => {
@@ -109,7 +110,6 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log('Attempting to delete status with ID:', id);
       const response = await apiClient.delete(`/status/${id}`);
       if (response.status === 200) {
-        Alert.alert('Success', 'Status deleted successfully');
         fetchMyStatuses();
         fetchAllStatuses(); // Tambahkan refresh all juga
         return true;

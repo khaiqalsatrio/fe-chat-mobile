@@ -6,6 +6,7 @@ import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useStatus } from '../hooks/useStatus';
+import { ModernAlert } from '@/shared/components/ModernAlert';
 
 const { width, height } = Dimensions.get('window');
 
@@ -19,6 +20,15 @@ export default function StatusViewerPage() {
   const [progress, setProgress] = useState(0);
   const [reply, setReply] = useState('');
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'danger' as 'success' | 'danger' | 'warning' | 'info',
+    onConfirm: undefined as (() => void) | undefined
+  });
+
   const isMe = params.isMe === 'true';
 
   useEffect(() => {
@@ -26,21 +36,30 @@ export default function StatusViewerPage() {
   }, [params]);
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Status',
-      'Are you sure you want to delete this status?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            const success = await deleteStatus(params.id as string);
-            if (success) router.back();
-          }
-        },
-      ]
-    );
+    setAlertConfig({
+      visible: true,
+      title: 'Delete Status',
+      message: 'Are you sure you want to delete this status? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: async () => {
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+        const success = await deleteStatus(params.id as string);
+        if (success) {
+          // Tampilkan sukses sebentar lalu balik
+          setAlertConfig({
+            visible: true,
+            title: 'Deleted!',
+            message: 'Your status has been removed successfully.',
+            type: 'success',
+            onConfirm: undefined
+          });
+          setTimeout(() => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            router.back();
+          }, 1500);
+        }
+      }
+    });
   };
 
   // Simulasi progress bar
@@ -133,6 +152,15 @@ export default function StatusViewerPage() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <ModernAlert 
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

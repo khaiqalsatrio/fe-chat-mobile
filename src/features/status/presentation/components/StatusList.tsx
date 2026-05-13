@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
 import { StatusCircle } from './StatusCircle';
 import { useContacts } from '@/features/chat/presentation/hooks/useContacts';
 import { useStatus } from '../hooks/useStatus';
+import { ModernAlert } from '@/shared/components/ModernAlert';
 
 interface StatusListProps {
   themeColors: any;
@@ -11,6 +12,14 @@ interface StatusListProps {
 export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
   const { uploadStatus, isUploading, myStatuses, allStatuses } = useStatus();
   const { sections } = useContacts();
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleUploadStatus = async () => {
+    const success = await uploadStatus();
+    if (success) {
+      setShowSuccess(true);
+    }
+  };
 
   // Ambil semua user dari semua section kontak untuk pencocokan nama
   const allUsers = sections.flatMap(section => section.data);
@@ -42,7 +51,7 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
             isMe 
             hasUpdate={myStatuses.length > 0}
             themeColors={themeColors} 
-            onPress={uploadStatus}
+            onPress={handleUploadStatus}
           />
           {isUploading && (
             <View style={styles.loadingOverlay}>
@@ -70,6 +79,14 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
           );
         })}
       </ScrollView>
+
+      <ModernAlert 
+        visible={showSuccess}
+        title="Posted!"
+        message="Your status has been updated successfully."
+        type="success"
+        onClose={() => setShowSuccess(false)}
+      />
     </View>
   );
 };
