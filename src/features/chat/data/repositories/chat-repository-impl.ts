@@ -16,9 +16,11 @@ export class ChatRepository {
 
         // If it's a private chat, use the other participant's info
         const isPrivate = room.type?.toUpperCase() === 'PRIVATE';
+        let otherParticipant: any = null;
+
         if (isPrivate && Array.isArray(room.participants)) {
-          const otherParticipant = room.participants.find((p: any) => {
-            const pId = typeof p === 'string' ? p : p.id;
+          otherParticipant = room.participants.find((p: any) => {
+            const pId = typeof p === 'string' ? p : (p.id || p.ID || p.user_id);
             // Check both string and potentially numeric IDs
             return pId && String(pId) !== String(currentUserId);
           });
@@ -33,7 +35,10 @@ export class ChatRepository {
 
         // If it's still "Chat" but we have participants, maybe the first one is NOT us
         if (name === 'Chat' && Array.isArray(room.participants) && room.participants.length > 0) {
-           const fallbackParticipant = room.participants.find((p: any) => String(typeof p === 'string' ? p : p.id) !== String(currentUserId));
+           const fallbackParticipant = room.participants.find((p: any) => {
+             const pId = typeof p === 'string' ? p : (p.id || p.ID || p.user_id);
+             return String(pId) !== String(currentUserId);
+           });
            if (fallbackParticipant && typeof fallbackParticipant === 'object') {
              name = fallbackParticipant.username || fallbackParticipant.name || name;
            }
@@ -60,6 +65,8 @@ export class ChatRepository {
         if (!lastMessage && room.content) lastMessage = room.content;
         if (!lastMessage && room.Content) lastMessage = room.Content;
 
+        const otherParticipantId = otherParticipant ? (typeof otherParticipant === 'string' ? otherParticipant : (otherParticipant.id || otherParticipant.ID || otherParticipant.user_id)) : null;
+
         return {
           id: room.id,
           conversation_id: room.id,
@@ -70,6 +77,8 @@ export class ChatRepository {
           unread_count: 0,
           avatar: avatar,
           type: room.type || 'PRIVATE',
+          participants: room.participants,
+          other_user_id: otherParticipantId ? String(otherParticipantId) : undefined,
         };
       });
     } catch (error: any) {
@@ -95,9 +104,11 @@ export class ChatRepository {
       let avatar = room.avatar_url || '';
 
       const isPrivate = room.type?.toUpperCase() === 'PRIVATE';
+      let otherParticipant: any = null;
+
       if (isPrivate && Array.isArray(room.participants)) {
-        const otherParticipant = room.participants.find((p: any) => {
-          const pId = typeof p === 'string' ? p : p.id;
+        otherParticipant = room.participants.find((p: any) => {
+          const pId = typeof p === 'string' ? p : (p.id || p.ID || p.user_id);
           return pId && String(pId) !== String(currentUserId);
         });
 
@@ -109,7 +120,10 @@ export class ChatRepository {
 
       // Fallback
       if (name === 'Chat' && Array.isArray(room.participants) && room.participants.length > 0) {
-        const fallbackParticipant = room.participants.find((p: any) => String(typeof p === 'string' ? p : p.id) !== String(currentUserId));
+        const fallbackParticipant = room.participants.find((p: any) => {
+          const pId = typeof p === 'string' ? p : (p.id || p.ID || p.user_id);
+          return String(pId) !== String(currentUserId);
+        });
         if (fallbackParticipant && typeof fallbackParticipant === 'object') {
           name = fallbackParticipant.username || fallbackParticipant.name || name;
         }
@@ -136,6 +150,8 @@ export class ChatRepository {
       if (!lastMessage && room.content) lastMessage = room.content;
       if (!lastMessage && room.Content) lastMessage = room.Content;
 
+      const otherParticipantId = otherParticipant ? (typeof otherParticipant === 'string' ? otherParticipant : (otherParticipant.id || otherParticipant.ID || otherParticipant.user_id)) : null;
+
       return {
         id: room.id,
         conversation_id: room.id,
@@ -146,6 +162,8 @@ export class ChatRepository {
         unread_count: 0,
         avatar: avatar,
         type: room.type || 'PRIVATE',
+        participants: room.participants,
+        other_user_id: otherParticipantId ? String(otherParticipantId) : undefined,
       };
     } catch (error: any) {
       console.warn(`[ChatRepository] getConversation failed for ${id}, likely 404. Using fallback.`);

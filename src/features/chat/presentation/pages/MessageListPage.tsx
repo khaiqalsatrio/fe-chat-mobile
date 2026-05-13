@@ -4,7 +4,7 @@ import { getAvatarUrl } from '@/core/utils/image-utils';
 import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -37,15 +37,70 @@ export default function MessageListPage() {
     isLoading,
     isRefreshing,
     onRefresh,
+    fetchConversations,
   } = useConversations();
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchConversations(false);
+    }, [fetchConversations])
+  );
 
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
 
-  const filteredConversations = conversations.filter(chat =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.last_message?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = React.useMemo(() => {
+    // First sort by time descending and filter by search query
+    const filtered = [...conversations]
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .filter(chat =>
+        chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        chat.last_message?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+    // Then deduplicate private chats by other participant ID
+    const seen = new Set<string>();
+    return filtered.filter(chat => {
+      if (chat.type === 'PRIVATE' && chat.participants && user?.id) {
+        const otherParticipant = chat.participants.find((p: any) => {
+          const pId = typeof p === 'string' ? p : p.id;
+          return pId && String(pId) !== String(user.id);
+        });
+        
+        const otherId = otherParticipant ? (typeof otherParticipant === 'string' ? otherParticipant : otherParticipant.id) : null;
+        
+        if (otherId) {
+          const key = `private_${otherId}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+        }
+      }
+      return true;
+    });
+  }, [conversations, searchQuery, user?.id]);
+
+  const conversationUserIds = React.useMemo(() => {
+    const ids = new Set<string>();
+    conversations.forEach(chat => {
+      // 1. Cek explicit other_user_id (baru ditambahkan di repo)
+      const directId = (chat as any).other_user_id;
+      if (directId) {
+        ids.add(String(directId));
+      }
+      
+      // 2. Fallback: Cari dari daftar participants
+      if (chat.participants && Array.isArray(chat.participants)) {
+        chat.participants.forEach((p: any) => {
+          const pId = typeof p === 'string' ? p : (p.id || p.ID || p.user_id || p.UserId || p.userId);
+          if (pId && String(pId) !== String(user?.id)) {
+            ids.add(String(pId));
+          }
+        });
+      }
+    });
+    return Array.from(ids);
+  }, [conversations, user?.id]);
 
   const toggleSearch = () => {
     setIsSearchVisible(!isSearchVisible);
@@ -53,10 +108,6 @@ export default function MessageListPage() {
       setSearchQuery('');
     }
   };
-
-
-
-
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : themeColors.background, paddingTop: insets.top }]}>
@@ -109,7 +160,7 @@ export default function MessageListPage() {
           }
         >
           {/* Status Section */}
-          <StatusList themeColors={themeColors} />
+          <StatusList themeColors={themeColors} filterUserIds={conversationUserIds} />
 
           {/* Chats List */}
           <View style={styles.chatsSection}>

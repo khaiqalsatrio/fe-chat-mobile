@@ -19,6 +19,7 @@ export interface Conversation {
   avatar: string;
   type: 'PRIVATE' | 'GROUP';
   participants?: any[];
+  other_user_id?: string;
 }
 
 export interface SocketEvent {

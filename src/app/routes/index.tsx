@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
 import { authRepository } from '@/features/auth/data/repositories/auth-repository-impl';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -29,7 +29,7 @@ export default function LandingPage() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
@@ -42,7 +42,7 @@ export default function LandingPage() {
                 style={styles.illustration}
                 contentFit="cover"
               />
-              
+
               {/* Encrypted Badge */}
               <View style={styles.encryptedBadge}>
                 <Ionicons name="lock-closed" size={14} color="#6366f1" />
@@ -58,7 +58,7 @@ export default function LandingPage() {
 
           {/* Text Content */}
           <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: themeColors.text }]}>Connect Instantly</Text>
+            <Text style={[styles.title, { color: themeColors.text }]}>Instantly Messaging</Text>
             <Text style={[styles.subtitle, { color: themeColors.icon }]}>
               Experience the future of communication with seamless real-time messaging and military-grade security.
             </Text>
@@ -83,8 +83,8 @@ export default function LandingPage() {
 
           {/* Footer Area */}
           <View style={styles.footer}>
-            <TouchableOpacity 
-              activeOpacity={0.8} 
+            <TouchableOpacity
+              activeOpacity={0.8}
               onPress={() => router.push('/register')}
             >
               <LinearGradient

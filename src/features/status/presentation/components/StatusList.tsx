@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, View, ActivityIndicator, FlatList } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { StatusCircle } from './StatusCircle';
 import { useContacts } from '@/features/chat/presentation/hooks/useContacts';
@@ -10,9 +11,10 @@ import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 
 interface StatusListProps {
   themeColors: any;
+  filterUserIds?: string[];
 }
 
-export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
+export const StatusList: React.FC<StatusListProps> = ({ themeColors, filterUserIds }) => {
   const { uploadStatus, isUploading, myStatuses, allStatuses, fetchAllStatuses } = useStatus();
   const { sections } = useContacts();
   const { user: myUserData } = useAuth();
@@ -21,6 +23,13 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
   useEffect(() => {
     fetchAllStatuses();
   }, [fetchAllStatuses]);
+
+  // Refresh statuses when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAllStatuses();
+    }, [fetchAllStatuses])
+  );
 
   const handleUploadStatus = async () => {
     const success = await uploadStatus();
@@ -39,38 +48,49 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
   const myStatusMedia = myLatestStatus ? getAvatarUrl(myLatestStatus.media_url, 'status_me') : myAvatar;
 
   // Friends Status Data
-  const friendsStatusEntries = Object.entries(allStatuses);
+  const friendsStatusEntries = Object.entries(allStatuses).filter(([userId]) => {
+    if (filterUserIds) {
+      return filterUserIds.some(id => String(id) === String(userId));
+    }
+    return true;
+  });
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        horizontal 
+      <FlatList
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >
-        {/* My Status */}
-        <View style={{ position: 'relative' }}>
-          <StatusCircle 
-            id={myLatestStatus?.id}
-            name="My Status" 
-            image={myAvatar} 
-            statusMedia={myStatusMedia}
-            isMe 
-            hasUpdate={myStatuses.length > 0}
-            themeColors={themeColors} 
-            onPress={handleUploadStatus}
-          />
-          {isUploading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="small" color="#6366f1" />
-            </View>
-          )}
-        </View>
-        
-        {/* Friends Statuses */}
-        {friendsStatusEntries.map(([userId, statuses]) => {
+        data={[
+          { isMe: true },
+          ...friendsStatusEntries.map(([userId, statuses]) => ({ userId, statuses }))
+        ]}
+        keyExtractor={(item: any, index) => item.isMe ? 'me' : item.userId}
+        renderItem={({ item }: { item: any }) => {
+          if (item.isMe) {
+            return (
+              <View style={{ position: 'relative' }}>
+                <StatusCircle 
+                  id={myLatestStatus?.id}
+                  name="My Status" 
+                  image={myAvatar} 
+                  statusMedia={myStatusMedia}
+                  isMe 
+                  hasUpdate={myStatuses.length > 0}
+                  themeColors={themeColors} 
+                  onPress={handleUploadStatus}
+                />
+                {isUploading && (
+                  <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="small" color="#6366f1" />
+                  </View>
+                )}
+              </View>
+            );
+          }
+
+          const { userId, statuses } = item;
           const latestStatus = statuses[0];
-          // Cari nama asli teman berdasarkan ID
           const friend = allUsers.find(u => u.id === userId);
           const displayName = friend ? friend.username : `User ${userId.slice(0, 4)}`;
 
@@ -85,8 +105,8 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
               themeColors={themeColors}
             />
           );
-        })}
-      </ScrollView>
+        }}
+      />
 
       <ModernAlert 
         visible={showSuccess}
@@ -107,6 +127,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   loadingOverlay: {
     position: 'absolute',

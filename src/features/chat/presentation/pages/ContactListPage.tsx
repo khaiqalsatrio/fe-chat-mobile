@@ -1,5 +1,6 @@
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -14,13 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactItem } from '../components/ContactItem';
 import { useContacts } from '../hooks/useContacts';
-import { getAvatarUrl } from '@/core/utils/image-utils';
-import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -40,11 +37,6 @@ export default function ContactListPage() {
   } = useContacts();
 
   const { user } = useAuth();
-
-
-
-
-
 
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
