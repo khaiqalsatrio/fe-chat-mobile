@@ -1,7 +1,6 @@
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -16,6 +15,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusList } from '../../../status/presentation/components/StatusList';
 import { ConversationItem } from '../components/ConversationItem';
 import { useConversations } from '../hooks/useConversations';
 
@@ -44,13 +44,6 @@ export default function MessageListPage() {
         borderBottomColor: colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6'
       }]}>
         <View style={styles.headerLeft}>
-          <View style={styles.myAvatarWrapper}>
-            <Image
-              source={{ uri: myUserData?.avatar_url || 'https://i.pravatar.cc/150?u=me' }}
-              style={styles.myAvatar}
-            />
-            <View style={[styles.onlineDotLarge, { borderColor: themeColors.background }]} />
-          </View>
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>Messager</Text>
         </View>
         <TouchableOpacity style={styles.searchButton}>
@@ -74,6 +67,9 @@ export default function MessageListPage() {
             />
           }
         >
+          {/* Status Section */}
+          <StatusList themeColors={themeColors} />
+
           {/* Chats List */}
           <View style={styles.chatsSection}>
             {conversations.length === 0 ? (

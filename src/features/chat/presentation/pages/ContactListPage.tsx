@@ -1,7 +1,6 @@
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -15,7 +14,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StatusList } from '../../../status/presentation/components/StatusList';
 import { ContactItem } from '../components/ContactItem';
 import { useContacts } from '../hooks/useContacts';
 
@@ -46,7 +44,6 @@ export default function ContactListPage() {
       <View style={[styles.header, { paddingTop: insets.top, borderBottomColor: borderColor, backgroundColor: headerBg }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Image source={{ uri: 'https://i.pravatar.cc/150?u=me' }} style={styles.myAvatar} />
             <Text style={[styles.headerTitle, { color: themeColors.text }]}>Contacts</Text>
           </View>
           <View style={styles.headerActions}>
@@ -76,9 +73,6 @@ export default function ContactListPage() {
             />
           }
         >
-          {/* Status Section */}
-          <StatusList themeColors={themeColors} />
-
           {/* Filter Section */}
           <View style={[styles.filterSection, { borderBottomColor: borderColor, backgroundColor: themeColors.background }]}>
             <TouchableOpacity style={styles.filterItem}>

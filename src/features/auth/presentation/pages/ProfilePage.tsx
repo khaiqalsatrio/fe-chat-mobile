@@ -1,25 +1,24 @@
 import React from 'react';
 import { useProfile } from '../hooks/useProfile';
 
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-  ActivityIndicator,
-  RefreshControl,
-  Switch,
-} from 'react-native';
-import { Image } from 'expo-image';
+import { useAppTheme } from '@/core/context/ThemeContext';
+import { useThemeColor } from '@/core/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import {
+  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileInfo } from '../components/ProfileInfo';
 import { SettingItem } from '../components/SettingItem';
-import { useThemeColor } from '@/core/hooks/use-theme-color';
-import { useAppTheme } from '@/core/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -49,10 +48,6 @@ export default function ProfilePage() {
       <View style={[styles.header, { paddingTop: insets.top, backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <Image 
-              source={{ uri: user?.avatar_url || `https://i.pravatar.cc/150?u=${user?.id || 'me'}` }} 
-              style={styles.myAvatarSmall} 
-            />
             <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           </View>
         </View>
@@ -63,8 +58,8 @@ export default function ProfilePage() {
           <ActivityIndicator size="large" color="#6366f1" />
         </View>
       ) : (
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
@@ -75,46 +70,46 @@ export default function ProfilePage() {
           {/* Settings Groups */}
           <View style={styles.settingsSection}>
             <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
-              <SettingItem 
-                icon="moon-outline" 
-                title="Dark Mode" 
-                subtitle="Enable dark theme" 
+              <SettingItem
+                icon="moon-outline"
+                title="Dark Mode"
+                subtitle="Enable dark theme"
                 color="#8b5cf6"
                 rightElement={
-                  <Switch 
-                    value={colorScheme === 'dark'} 
+                  <Switch
+                    value={colorScheme === 'dark'}
                     onValueChange={toggleTheme}
                     trackColor={{ false: '#d1d5db', true: '#6366f1' }}
                     thumbColor="#fff"
                   />
                 }
               />
-              <SettingItem 
-                icon="person-outline" 
-                title="Account" 
-                subtitle="Security, Two-factor, Privacy" 
+              <SettingItem
+                icon="person-outline"
+                title="Account"
+                subtitle="Security, Two-factor, Privacy"
                 color="#6366f1"
                 isLast
               />
             </View>
 
             <View style={[styles.settingsCard, { backgroundColor: cardBg }]}>
-              <SettingItem 
-                icon="notifications-outline" 
-                title="Notifications" 
-                subtitle="Push, Email, Quiet mode" 
+              <SettingItem
+                icon="notifications-outline"
+                title="Notifications"
+                subtitle="Push, Email, Quiet mode"
                 color="#6366f1"
               />
-              <SettingItem 
-                icon="lock-closed-outline" 
-                title="Privacy" 
-                subtitle="Data, Visibility, Contacts" 
+              <SettingItem
+                icon="lock-closed-outline"
+                title="Privacy"
+                subtitle="Data, Visibility, Contacts"
                 color="#10b981"
               />
-              <SettingItem 
-                icon="help-circle-outline" 
-                title="Help" 
-                subtitle="Support center, FAQ" 
+              <SettingItem
+                icon="help-circle-outline"
+                title="Help"
+                subtitle="Support center, FAQ"
                 color="#6b7280"
                 isLast
               />
@@ -123,7 +118,7 @@ export default function ProfilePage() {
 
           {/* Logout Button */}
           <View style={styles.logoutSection}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.logoutButton, { backgroundColor: cardBg, borderColor: logoutBorder }]}
               onPress={handleLogout}
             >

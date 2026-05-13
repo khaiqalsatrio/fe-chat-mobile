@@ -1,20 +1,31 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
 import { StatusCircle } from './StatusCircle';
+import { useContacts } from '@/features/chat/presentation/hooks/useContacts';
+import { useStatus } from '../hooks/useStatus';
 
 interface StatusListProps {
   themeColors: any;
 }
 
-const DUMMY_STATUS = [
-  { id: '1', name: 'Alex', image: 'https://i.pravatar.cc/150?u=alex', hasUpdate: true },
-  { id: '2', name: 'Sarah', image: 'https://i.pravatar.cc/150?u=sarah', hasUpdate: false },
-  { id: '3', name: 'Jordan', image: 'https://i.pravatar.cc/150?u=jordan', hasUpdate: true },
-  { id: '4', name: 'Taylor', image: 'https://i.pravatar.cc/150?u=taylor', hasUpdate: false },
-  { id: '5', name: 'Casey', image: 'https://i.pravatar.cc/150?u=casey', hasUpdate: true },
-];
-
 export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
+  const { uploadStatus, isUploading, myStatuses, allStatuses } = useStatus();
+  const { sections } = useContacts();
+
+  // Ambil semua user dari semua section kontak untuk pencocokan nama
+  const allUsers = sections.flatMap(section => section.data);
+
+  const BASE_IMAGE_URL = 'http://10.0.2.2:8080'; // Sesuaikan dengan API_URL Anda
+  
+  // My Status Data
+  const myLatestStatus = myStatuses.length > 0 ? myStatuses[0] : null;
+  const myAvatar = myLatestStatus 
+    ? `${BASE_IMAGE_URL}${myLatestStatus.media_url}` 
+    : 'https://i.pravatar.cc/150?u=me';
+
+  // Friends Status Data
+  const friendsStatusEntries = Object.entries(allStatuses);
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -22,22 +33,41 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <StatusCircle 
-          name="My Status" 
-          image="https://i.pravatar.cc/150?u=me" 
-          isMe 
-          themeColors={themeColors} 
-        />
-        
-        {DUMMY_STATUS.map((status) => (
+        {/* My Status */}
+        <View style={{ position: 'relative' }}>
           <StatusCircle 
-            key={status.id}
-            name={status.name}
-            image={status.image}
-            hasUpdate={status.hasUpdate}
-            themeColors={themeColors}
+            name="My Status" 
+            image={myAvatar} 
+            isMe 
+            hasUpdate={myStatuses.length > 0}
+            themeColors={themeColors} 
+            onPress={uploadStatus}
           />
-        ))}
+          {isUploading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="small" color="#6366f1" />
+            </View>
+          )}
+        </View>
+        
+        {/* Friends Statuses */}
+        {friendsStatusEntries.map(([userId, statuses]) => {
+          const latestStatus = statuses[0];
+          // Cari nama asli teman berdasarkan ID
+          const friend = allUsers.find(u => u.id === userId);
+          const displayName = friend ? friend.username : `User ${userId.slice(0, 4)}`;
+
+          return (
+            <StatusCircle 
+              key={userId}
+              id={userId}
+              name={displayName}
+              image={`${BASE_IMAGE_URL}${latestStatus.media_url}`}
+              hasUpdate={true}
+              themeColors={themeColors}
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -51,5 +81,17 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 16,
+    bottom: 24,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
 });

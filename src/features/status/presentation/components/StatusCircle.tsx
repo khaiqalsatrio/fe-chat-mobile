@@ -3,7 +3,10 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useRouter } from 'expo-router';
+
 interface StatusCircleProps {
+  id?: string;
   name: string;
   image: string;
   isMe?: boolean;
@@ -13,6 +16,7 @@ interface StatusCircleProps {
 }
 
 export const StatusCircle: React.FC<StatusCircleProps> = ({
+  id,
   name,
   image,
   isMe = false,
@@ -20,10 +24,23 @@ export const StatusCircle: React.FC<StatusCircleProps> = ({
   onPress,
   themeColors,
 }) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    if (isMe && !hasUpdate) {
+      onPress?.();
+    } else if (hasUpdate || isMe) {
+      router.push({
+        pathname: `/status/${id || 'me'}`,
+        params: { name, avatar: image, image }
+      } as any);
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={styles.container} 
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
       <View style={[
