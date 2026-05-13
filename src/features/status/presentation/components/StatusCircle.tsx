@@ -31,8 +31,8 @@ export const StatusCircle: React.FC<StatusCircleProps> = ({
       onPress?.();
     } else if (hasUpdate || isMe) {
       router.push({
-        pathname: `/status/${id || 'me'}`,
-        params: { name, avatar: image, image }
+        pathname: `/status/${id || 'unknown'}`,
+        params: { name, avatar: image, image, isMe: isMe ? 'true' : 'false' }
       } as any);
     }
   };

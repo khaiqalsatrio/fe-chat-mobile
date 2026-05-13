@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Dimensions, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Dimensions, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useStatus } from '../hooks/useStatus';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,8 +15,33 @@ export default function StatusViewerPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
+  const { deleteStatus } = useStatus();
   const [progress, setProgress] = useState(0);
   const [reply, setReply] = useState('');
+
+  const isMe = params.isMe === 'true';
+
+  useEffect(() => {
+    console.log('StatusViewer opened with params:', params);
+  }, [params]);
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Status',
+      'Are you sure you want to delete this status?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            const success = await deleteStatus(params.id as string);
+            if (success) router.back();
+          }
+        },
+      ]
+    );
+  };
 
   // Simulasi progress bar
   useEffect(() => {
@@ -64,9 +90,16 @@ export default function StatusViewerPage() {
               <Text style={styles.timeAgo}>12h ago</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-            <Ionicons name="close" size={28} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {isMe && (
+              <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
+                <Ionicons name="trash-outline" size={24} color="#ff4444" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => router.back()} style={styles.actionButton}>
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -174,8 +207,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 1,
   },
-  closeButton: {
-    padding: 8,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    marginLeft: 16,
+    padding: 4,
   },
   bottomSection: {
     position: 'absolute',

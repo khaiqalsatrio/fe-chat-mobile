@@ -27,10 +27,14 @@ function RootLayoutContent() {
   );
 }
 
+import { StatusProvider } from '@/features/status/presentation/context/StatusContext';
+
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootLayoutContent />
+      <StatusProvider>
+        <RootLayoutContent />
+      </StatusProvider>
     </ThemeProvider>
   );
 }

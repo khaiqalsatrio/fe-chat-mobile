@@ -36,6 +36,7 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
         {/* My Status */}
         <View style={{ position: 'relative' }}>
           <StatusCircle 
+            id={myLatestStatus?.id}
             name="My Status" 
             image={myAvatar} 
             isMe 
