@@ -13,6 +13,9 @@ export const useConversations = () => {
   const fetchConversations = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
+      const token = await SecureStore.getItemAsync('auth_token');
+      if (!token) return;
+
       const data = await chatRepository.getConversations();
       setConversations(data);
     } catch (error) {

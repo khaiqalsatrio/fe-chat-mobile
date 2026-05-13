@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getAvatarUrl } from '@/core/utils/image-utils';
 
 interface ChatHeaderProps {
   conversation: any;
@@ -28,7 +29,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ conversation, conversati
         <View style={styles.userInfo}>
           <View style={styles.avatarWrapper}>
             <Image
-              source={{ uri: conversation?.avatar || `https://i.pravatar.cc/150?u=${conversationId || 'default'}` }}
+              source={{ uri: getAvatarUrl(conversation?.avatar, conversationId) }}
               style={styles.avatar}
             />
             <View style={[styles.onlineDot, { borderColor: backgroundColor }]} />

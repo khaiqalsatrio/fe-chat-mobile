@@ -14,9 +14,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
+import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactItem } from '../components/ContactItem';
 import { useContacts } from '../hooks/useContacts';
+import { getAvatarUrl } from '@/core/utils/image-utils';
+import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -34,6 +38,13 @@ export default function ContactListPage() {
     onRefresh,
     handleStartChat,
   } = useContacts();
+
+  const { user } = useAuth();
+
+
+
+
+
 
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);

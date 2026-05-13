@@ -1,6 +1,9 @@
 import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { getAvatarUrl } from '@/core/utils/image-utils';
+import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -27,12 +30,12 @@ export default function MessageListPage() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
+  const { user } = useAuth();
 
   const {
     conversations,
     isLoading,
     isRefreshing,
-    myUserData,
     onRefresh,
   } = useConversations();
 
@@ -50,6 +53,9 @@ export default function MessageListPage() {
       setSearchQuery('');
     }
   };
+
+
+
 
 
   return (
@@ -133,10 +139,22 @@ export default function MessageListPage() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={[styles.fab, { bottom: Platform.OS === 'ios' ? 100 : 90 }]}
+        style={[
+          styles.fab, 
+          { 
+            bottom: Platform.OS === 'ios' ? 75 : 65,
+            backgroundColor: colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.9)',
+            borderColor: colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.15)',
+            shadowColor: colorScheme === 'dark' ? '#000' : '#6366f1',
+          }
+        ]}
         activeOpacity={0.8}
       >
-        <Ionicons name="sparkles" size={24} color="#fff" />
+        <Image 
+          source={require('@/app/assets/meta3.png')} 
+          style={{ width: 50, height: 50 }}
+          contentFit="contain"
+        />
       </TouchableOpacity>
     </View>
   );
@@ -224,12 +242,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 20,
-    backgroundColor: '#6366f1',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#6366f1',
+    borderWidth: 1,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
   },

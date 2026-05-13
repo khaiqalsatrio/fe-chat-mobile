@@ -31,8 +31,10 @@ export default function ProfilePage() {
     user,
     isLoading,
     isRefreshing,
+    isUpdatingPhoto,
     onRefresh,
     handleLogout,
+    updatePhoto,
   } = useProfile();
 
   const backgroundColor = useThemeColor({ light: '#f9fafb', dark: '#000000' }, 'background');
@@ -65,7 +67,11 @@ export default function ProfilePage() {
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
           }
         >
-          <ProfileInfo user={user} />
+          <ProfileInfo 
+            user={user} 
+            onUpdatePhoto={updatePhoto} 
+            isUpdating={isUpdatingPhoto} 
+          />
 
           {/* Settings Groups */}
           <View style={styles.settingsSection}>

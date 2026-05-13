@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { StatusCircle } from './StatusCircle';
 import { useContacts } from '@/features/chat/presentation/hooks/useContacts';
 import { useStatus } from '../hooks/useStatus';
 import { ModernAlert } from '@/shared/components/ModernAlert';
+import { getAvatarUrl } from '@/core/utils/image-utils';
+import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 
 interface StatusListProps {
   themeColors: any;
 }
 
 export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
-  const { uploadStatus, isUploading, myStatuses, allStatuses } = useStatus();
+  const { uploadStatus, isUploading, myStatuses, allStatuses, fetchAllStatuses } = useStatus();
   const { sections } = useContacts();
+  const { user: myUserData } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    fetchAllStatuses();
+  }, [fetchAllStatuses]);
 
   const handleUploadStatus = async () => {
     const success = await uploadStatus();
@@ -24,13 +32,11 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
   // Ambil semua user dari semua section kontak untuk pencocokan nama
   const allUsers = sections.flatMap(section => section.data);
 
-  const BASE_IMAGE_URL = 'http://10.0.2.2:8080'; // Sesuaikan dengan API_URL Anda
-  
   // My Status Data
   const myLatestStatus = myStatuses.length > 0 ? myStatuses[0] : null;
-  const myAvatar = myLatestStatus 
-    ? `${BASE_IMAGE_URL}${myLatestStatus.media_url}` 
-    : 'https://i.pravatar.cc/150?u=me';
+  const myAvatar = getAvatarUrl(myUserData?.avatar_url, 'me');
+  // Resolve my latest status media URL
+  const myStatusMedia = myLatestStatus ? getAvatarUrl(myLatestStatus.media_url, 'status_me') : myAvatar;
 
   // Friends Status Data
   const friendsStatusEntries = Object.entries(allStatuses);
@@ -48,6 +54,7 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
             id={myLatestStatus?.id}
             name="My Status" 
             image={myAvatar} 
+            statusMedia={myStatusMedia}
             isMe 
             hasUpdate={myStatuses.length > 0}
             themeColors={themeColors} 
@@ -72,7 +79,8 @@ export const StatusList: React.FC<StatusListProps> = ({ themeColors }) => {
               key={userId}
               id={userId}
               name={displayName}
-              image={`${BASE_IMAGE_URL}${latestStatus.media_url}`}
+              image={getAvatarUrl(friend?.avatar_url, userId)}
+              statusMedia={getAvatarUrl(latestStatus.media_url, latestStatus.id)}
               hasUpdate={true}
               themeColors={themeColors}
             />

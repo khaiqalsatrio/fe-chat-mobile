@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import { userRepository } from '@/features/auth/data/repositories/user-repository-impl';
 import { User } from '@/features/auth/domain/entities/user';
@@ -18,6 +19,9 @@ export const useContacts = () => {
   const fetchContacts = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
+      const token = await SecureStore.getItemAsync('auth_token');
+      if (!token) return;
+
       const users = await userRepository.getAllUsers();
       
       // Group users by first letter

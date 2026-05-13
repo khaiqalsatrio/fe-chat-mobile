@@ -28,13 +28,16 @@ function RootLayoutContent() {
 }
 
 import { StatusProvider } from '@/features/status/presentation/context/StatusContext';
+import { AuthProvider } from '@/features/auth/presentation/context/AuthContext';
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <StatusProvider>
-        <RootLayoutContent />
-      </StatusProvider>
+      <AuthProvider>
+        <StatusProvider>
+          <RootLayoutContent />
+        </StatusProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

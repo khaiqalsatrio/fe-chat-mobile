@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import * as SecureStore from 'expo-secure-store';
 import apiClient from '@/core/services/api-client';
 import { socketService } from '@/core/services/socket-service';
+import { useAuth } from '@/features/auth/presentation/context/AuthContext';
 import { Alert } from 'react-native';
 
 interface StatusContextType {
@@ -23,6 +25,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchMyStatuses = useCallback(async () => {
     try {
+      const token = await SecureStore.getItemAsync('auth_token');
+      if (!token) return;
+
       const response = await apiClient.get('/status/me');
       if (response.data && response.data.data) {
         setMyStatuses(response.data.data);
@@ -34,6 +39,9 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchAllStatuses = useCallback(async () => {
     try {
+      const token = await SecureStore.getItemAsync('auth_token');
+      if (!token) return;
+
       const response = await apiClient.get('/status');
       if (response.data && response.data.data) {
         setAllStatuses(response.data.data);
@@ -43,7 +51,16 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
+  // Listen to Auth changes to clear status state
+  const { user } = useAuth();
+
   useEffect(() => {
+    if (!user) {
+      setMyStatuses([]);
+      setAllStatuses({});
+      return;
+    }
+
     fetchMyStatuses();
     fetchAllStatuses();
 
@@ -61,7 +78,7 @@ export const StatusProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       unsubscribe();
     };
-  }, [fetchMyStatuses, fetchAllStatuses]);
+  }, [user, fetchMyStatuses, fetchAllStatuses]);
 
   const uploadStatus = async (): Promise<boolean> => {
     try {

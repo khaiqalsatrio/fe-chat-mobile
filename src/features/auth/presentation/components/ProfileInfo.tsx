@@ -5,12 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { User } from '@/features/auth/domain/entities/user';
 import { useThemeColor } from '@/core/hooks/use-theme-color';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
+import { ActivityIndicator } from 'react-native';
+import { getAvatarUrl } from '@/core/utils/image-utils';
 
 interface ProfileInfoProps {
   user: User | null;
+  onUpdatePhoto?: () => void;
+  isUpdating?: boolean;
 }
 
-export const ProfileInfo: React.FC<ProfileInfoProps> = ({ user }) => {
+export const ProfileInfo: React.FC<ProfileInfoProps> = ({ user, onUpdatePhoto, isUpdating }) => {
   const colorScheme = useColorScheme();
   const textColor = useThemeColor({}, 'text');
   const subTextColor = useThemeColor({ light: '#6b7280', dark: '#9ca3af' }, 'text');
@@ -18,8 +22,9 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ user }) => {
   const cardColor = useThemeColor({ light: '#fff', dark: '#0a0a0a' }, 'background');
   const shareBtnColor = useThemeColor({ light: '#e5e7eb', dark: '#1a1a1a' }, 'background');
   const shareIconColor = useThemeColor({ light: '#374151', dark: '#ececec' }, 'text');
+  const primaryColor = '#6366f1';
 
-  const avatarUrl = user?.avatar_url || `https://i.pravatar.cc/150?u=${user?.id || 'me'}`;
+  const avatarUrl = getAvatarUrl(user?.avatar_url || undefined, user?.id);
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -39,10 +44,19 @@ export const ProfileInfo: React.FC<ProfileInfoProps> = ({ user }) => {
                   source={{ uri: avatarUrl }} 
                   style={styles.largeAvatar} 
                 />
+                {isUpdating && (
+                  <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="small" color="#fff" />
+                  </View>
+                )}
               </View>
               {user?.status === 'ONLINE' && <View style={[styles.onlineStatusDot, { borderColor: cardColor }]} />}
-              <TouchableOpacity style={[styles.cameraButton, { backgroundColor: cardColor }]}>
-                <Ionicons name="camera" size={18} color="#6366f1" />
+              <TouchableOpacity 
+                style={[styles.cameraButton, { backgroundColor: cardColor }]}
+                onPress={onUpdatePhoto}
+                disabled={isUpdating}
+              >
+                <Ionicons name="camera" size={18} color={primaryColor} />
               </TouchableOpacity>
             </View>
 
@@ -99,6 +113,13 @@ const styles = StyleSheet.create({
     width: 124,
     height: 124,
     borderRadius: 62,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 62,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   onlineStatusDot: {
     position: 'absolute',

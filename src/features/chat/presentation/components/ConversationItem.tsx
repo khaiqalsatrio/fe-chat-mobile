@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Conversation } from '../../domain/entities/chat';
 import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { getAvatarUrl } from '@/core/utils/image-utils';
 
 interface ConversationItemProps {
   item: Conversation;
@@ -40,7 +41,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
           </View>
         ) : (
           <Image 
-            source={{ uri: item.avatar || `https://i.pravatar.cc/150?u=${item.id}` }} 
+            source={{ uri: getAvatarUrl(item.avatar, item.id) }} 
             style={styles.chatAvatar} 
           />
         )}

@@ -56,8 +56,41 @@ export class AuthRepository {
   }
 
   async logout(): Promise<void> {
-    await SecureStore.deleteItemAsync('auth_token');
-    await SecureStore.deleteItemAsync('user_data');
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (error) {
+      console.log('Backend logout failed or already logged out:', error);
+    } finally {
+      await SecureStore.deleteItemAsync('auth_token');
+      await SecureStore.deleteItemAsync('user_data');
+    }
+  }
+
+  async updateProfilePhoto(file: any): Promise<User> {
+    try {
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append('file', {
+        uri: file.uri,
+        name: file.name || 'photo.jpg',
+        type: file.type || 'image/jpeg',
+      });
+
+      const response = await apiClient.post('/auth/profile/photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const user = response.data.data;
+      await SecureStore.setItemAsync('user_data', JSON.stringify(user));
+      return user;
+    } catch (error: any) {
+      if (error.response) {
+        throw new Error(error.response.data.message || 'Failed to update photo');
+      }
+      throw new Error('Network error. Please check your connection.');
+    }
   }
 
   async isAuthenticated(): Promise<boolean> {

@@ -9,6 +9,7 @@ interface StatusCircleProps {
   id?: string;
   name: string;
   image: string;
+  statusMedia?: string;
   isMe?: boolean;
   hasUpdate?: boolean;
   onPress?: () => void;
@@ -19,6 +20,7 @@ export const StatusCircle: React.FC<StatusCircleProps> = ({
   id,
   name,
   image,
+  statusMedia,
   isMe = false,
   hasUpdate = false,
   onPress,
@@ -32,7 +34,12 @@ export const StatusCircle: React.FC<StatusCircleProps> = ({
     } else if (hasUpdate || isMe) {
       router.push({
         pathname: `/status/${id || 'unknown'}`,
-        params: { name, avatar: image, image, isMe: isMe ? 'true' : 'false' }
+        params: { 
+          name, 
+          avatar: image, 
+          image: statusMedia || image, 
+          isMe: isMe ? 'true' : 'false' 
+        }
       } as any);
     }
   };

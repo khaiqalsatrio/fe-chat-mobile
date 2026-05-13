@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { User } from '@/features/auth/domain/entities/user';
 import { useThemeColor } from '@/core/hooks/use-theme-color';
+import { getAvatarUrl } from '@/core/utils/image-utils';
 
 interface ContactItemProps {
   contact: User;
@@ -28,7 +29,7 @@ export const ContactItem: React.FC<ContactItemProps> = ({
       <View style={styles.contactInfo}>
         <View style={styles.avatarWrapper}>
           <Image 
-            source={{ uri: contact.avatar_url || `https://i.pravatar.cc/150?u=${contact.id}` }} 
+            source={{ uri: getAvatarUrl(contact.avatar_url, contact.id) }} 
             style={styles.avatar} 
           />
           {contact.status === 'ONLINE' && <View style={[styles.onlineDot, { borderColor: themeColors.background }]} />}
