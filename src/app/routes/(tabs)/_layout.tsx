@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/shared/components/haptic-tab';
@@ -12,30 +12,44 @@ export default function TabLayout() {
   const themeColors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
 
+  const TabIcon = ({ name, color, focused }: { name: any, color: string, focused: boolean }) => (
+    <View style={[
+      styles.iconContainer,
+      focused && {
+        backgroundColor: colorScheme === 'dark' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.1)',
+        transform: [{ scale: 1.15 }],
+      }
+    ]}>
+      <Ionicons name={name} size={focused ? 24 : 22} color={color} />
+    </View>
+  );
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#6366f1',
-        tabBarInactiveTintColor: colorScheme === 'dark' ? '#6b7280' : '#9ca3af',
+        tabBarInactiveTintColor: colorScheme === 'dark' ? '#4b5563' : '#9ca3af',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 88 : 70 + (insets.bottom > 0 ? insets.bottom - 10 : 0),
-          paddingBottom: Platform.OS === 'ios' ? 30 : (insets.bottom > 0 ? insets.bottom : 10),
-          paddingTop: 10,
-          borderTopWidth: colorScheme === 'dark' ? 1 : 0,
-          borderTopColor: colorScheme === 'dark' ? '#111827' : 'transparent',
-          elevation: 8,
+          height: 65 + (insets.bottom > 0 ? insets.bottom : 12),
+          paddingBottom: (insets.bottom > 0 ? insets.bottom : 12) + 5,
+          paddingTop: 12,
+          borderTopWidth: 0,
+          elevation: 20,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: colorScheme === 'dark' ? 0.2 : 0.05,
-          shadowRadius: 10,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: colorScheme === 'dark' ? 0.3 : 0.05,
+          shadowRadius: 12,
           backgroundColor: themeColors.background,
+          borderTopColor: colorScheme === 'dark' ? '#1f2937' : '#f3f4f6',
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginBottom: Platform.OS === 'android' ? 5 : 0,
+          fontSize: 10,
+          fontWeight: '800',
+          marginTop: 4,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
         }
       }}>
       <Tabs.Screen
@@ -43,7 +57,11 @@ export default function TabLayout() {
         options={{
           title: 'Chats',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"} size={24} color={color} />
+            <TabIcon 
+              name={focused ? "chatbubble-ellipses-sharp" : "chatbubble-ellipses-outline"} 
+              color={color} 
+              focused={focused} 
+            />
           ),
         }}
       />
@@ -52,7 +70,11 @@ export default function TabLayout() {
         options={{
           title: 'Contacts',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "people" : "people-outline"} size={24} color={color} />
+            <TabIcon 
+              name={focused ? "people-sharp" : "people-outline"} 
+              color={color} 
+              focused={focused} 
+            />
           ),
         }}
       />
@@ -61,10 +83,25 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
+            <TabIcon 
+              name={focused ? "person-sharp" : "person-outline"} 
+              color={color} 
+              focused={focused} 
+            />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+});
