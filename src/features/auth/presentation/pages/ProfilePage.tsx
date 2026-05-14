@@ -64,12 +64,20 @@ export default function ProfilePage() {
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.settingsButton}
-            onPress={() => router.push('/settings')}
-          >
-            <Ionicons name="settings-outline" size={24} color={textColor} />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={() => router.push('/post/create')}
+            >
+              <Ionicons name="add-circle-outline" size={26} color={textColor} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={() => router.push('/settings')}
+            >
+              <Ionicons name="settings-outline" size={24} color={textColor} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -168,12 +176,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  settingsButton: {
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
+    marginLeft: 8,
   },
   tabBar: {
     flexDirection: 'row',

@@ -4,6 +4,9 @@ import { Colors } from '@/core/constants/theme';
 import { useColorScheme } from '@/core/hooks/use-color-scheme';
 import { FeedItem } from '@/features/feeds/presentation/components/FeedItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
 const DUMMY_FEEDS = [
   {
@@ -51,12 +54,19 @@ export default function FeedsPage() {
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : themeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6' }]}>
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>Feeds</Text>
+        <TouchableOpacity 
+          onPress={() => router.push('/post/create')}
+          style={styles.addButton}
+        >
+          <Ionicons name="add-circle-outline" size={28} color={themeColors.text} />
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -78,6 +88,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  addButton: {
+    padding: 4,
   },
   headerTitle: {
     fontSize: 24,
