@@ -83,7 +83,10 @@ export default function CreatePostPage() {
 
   const handleNext = () => {
     if (selectedAsset) {
-      console.log('Next with asset:', selectedAsset.uri);
+      router.push({
+        pathname: '/post/finalize',
+        params: { imageUri: selectedAsset.uri }
+      });
     }
   };
 
